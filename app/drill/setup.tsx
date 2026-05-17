@@ -17,6 +17,8 @@ export default function DrillSetupScreen() {
   const [disasterType, setDisasterType] = useState('');
   const [expectedCount, setExpectedCount] = useState('');
   const [duration, setDuration] = useState(10);
+  const [customDuration, setCustomDuration] = useState('');
+  const [useCustom, setUseCustom] = useState(false);
 
   if (!user || user.role !== 'admin') {
     return (
@@ -28,8 +30,9 @@ export default function DrillSetupScreen() {
 
   const onStart = async () => {
     const count = parseInt(expectedCount, 10);
-    if (!disasterType || !count) {
-      Alert.alert('Select disaster and enter student count');
+    const mins = useCustom ? parseInt(customDuration, 10) : duration;
+    if (!disasterType || !count || !mins || mins < 1) {
+      Alert.alert('Select disaster, student count, and valid duration');
       return;
     }
     try {
@@ -39,7 +42,7 @@ export default function DrillSetupScreen() {
         status: 'active',
         startedBy: user.uid,
         startedAt: new Date(),
-        durationMinutes: duration,
+        durationMinutes: mins,
         expectedCount: count,
       });
       await notifyDrillStart({
@@ -100,13 +103,32 @@ export default function DrillSetupScreen() {
             {DURATIONS.map((d) => (
               <Pressable
                 key={d}
-                style={[styles.chip, duration === d && styles.chipActive]}
-                onPress={() => setDuration(d)}
+                style={[styles.chip, !useCustom && duration === d && styles.chipActive]}
+                onPress={() => {
+                  setUseCustom(false);
+                  setDuration(d);
+                }}
               >
-                <Text>{d} min</Text>
+                <Text style={!useCustom && duration === d ? styles.chipTextActive : undefined}>{d} min</Text>
               </Pressable>
             ))}
+            <Pressable
+              style={[styles.chip, useCustom && styles.chipActive]}
+              onPress={() => setUseCustom(true)}
+            >
+              <Text style={useCustom ? styles.chipTextActive : undefined}>Custom</Text>
+            </Pressable>
           </View>
+          {useCustom ? (
+            <TextInput
+              testID="custom-duration-input"
+              style={styles.input}
+              keyboardType="number-pad"
+              placeholder="Minutes (e.g. 20)"
+              value={customDuration}
+              onChangeText={setCustomDuration}
+            />
+          ) : null}
           <Pressable style={styles.btn} onPress={() => setStep(4)}>
             <Text style={styles.btnText}>Next</Text>
           </Pressable>
@@ -116,8 +138,8 @@ export default function DrillSetupScreen() {
         <>
           <Text style={styles.h1}>Confirm drill</Text>
           <Text style={styles.confirm}>
-            {DISASTER_META.find((d) => d.id === disasterType)?.icon} {disasterType} — {expectedCount}{' '}
-            students — {duration} minutes
+            {DISASTER_META.find((d) => d.id === disasterType)?.icon}             {disasterType} — {expectedCount}{' '}
+            students — {useCustom ? customDuration || '?' : duration} minutes
           </Text>
           <Text style={styles.sub}>Notification will go to all {user.schoolCode} members.</Text>
           <Pressable testID="start-drill-confirm" style={styles.btnDanger} onPress={onStart}>
@@ -160,6 +182,7 @@ const styles = StyleSheet.create({
   row: { flexDirection: 'row', gap: 8, marginBottom: 20 },
   chip: { paddingHorizontal: 16, paddingVertical: 10, borderRadius: radius.button, borderWidth: 1, borderColor: Colors.cardBorder },
   chipActive: { backgroundColor: Colors.primaryBlue, borderColor: Colors.primaryBlue },
+  chipTextActive: { color: Colors.white, fontWeight: '600' },
   confirm: { fontSize: 18, fontWeight: '600', marginBottom: 8 },
   sub: { color: Colors.textSecondary, marginBottom: 20 },
   btn: { backgroundColor: Colors.primaryBlue, padding: 16, borderRadius: radius.button, alignItems: 'center' },

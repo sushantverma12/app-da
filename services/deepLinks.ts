@@ -25,7 +25,15 @@ export async function handleCheckInDeepLink(url: string): Promise<{
   if (!drill) return { success: false, message: 'No active drill right now.' };
   const uid = useAuthStore.getState().user?.uid ?? null;
   const result = await checkInToDrill(drill.id, uid);
-  return { success: result.ok, message: result.message, drillId: drill.id };
+  const updated = await getActiveDrill(schoolCode);
+  const countMsg = updated
+    ? ` ${updated.checkedInCount} / ${updated.expectedCount} checked in.`
+    : '';
+  const message =
+    result.ok && result.message !== 'Already checked in'
+      ? `✅ You're safe!${countMsg}`
+      : result.message + countMsg;
+  return { success: result.ok, message: message.trim(), drillId: drill.id };
 }
 
 export const linkingConfig = {

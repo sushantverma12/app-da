@@ -14,6 +14,7 @@ interface DisasterState {
   setLocation: (loc: LocationInfo) => void;
   fetchDisasters: () => Promise<void>;
   dismissJoinBanner: () => void;
+  initJoinBanner: () => Promise<void>;
   loadChecklist: (disasterId: string) => Promise<boolean[]>;
   toggleChecklistItem: (disasterId: string, index: number, total: number) => Promise<void>;
 }
@@ -30,6 +31,10 @@ export const useDisasterStore = create<DisasterState>((set, get) => ({
     set({ disastersLoading: true, backendMode: getBackendStatus() });
     const disasters = await loadDisasters();
     set({ disasters, disastersLoading: false, backendMode: getBackendStatus() });
+  },
+  initJoinBanner: async () => {
+    const v = await AsyncStorage.getItem('joinBannerDismissed');
+    if (v === '1') set({ dismissedJoinBanner: true });
   },
   dismissJoinBanner: async () => {
     await AsyncStorage.setItem('joinBannerDismissed', '1');

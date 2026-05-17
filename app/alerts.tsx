@@ -3,7 +3,12 @@ import { View, Text, TextInput, Pressable, StyleSheet, FlatList, Alert } from 'r
 import { useRouter, Stack } from 'expo-router';
 import { ScreenShell } from '@/components/ScreenShell';
 import { useAuthStore } from '@/store/authStore';
-import { fetchAlerts, sendEmergencyAlert, isFirebaseConfigured } from '@/services/firebase';
+import {
+  fetchAlerts,
+  sendEmergencyAlert,
+  subscribeAlerts,
+  isFirebaseConfigured,
+} from '@/services/firebase';
 import { notifyEmergencyAlert } from '@/services/notifications';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AlertType, EmergencyAlert } from '@/types';
@@ -23,13 +28,16 @@ export default function AlertsScreen() {
   useEffect(() => {
     if (!user) return;
     if (isFirebaseConfigured) {
-      fetchAlerts(user.schoolCode).then((list) => setAlerts(list as EmergencyAlert[]));
-    } else {
+      return subscribeAlerts(user.schoolCode, (list) => setAlerts(list));
+    }
+    const load = () =>
       AsyncStorage.getItem(LOCAL_ALERTS_KEY).then((raw) => {
         const all: EmergencyAlert[] = raw ? JSON.parse(raw) : [];
         setAlerts(all.filter((a) => a.schoolCode === user.schoolCode));
       });
-    }
+    load();
+    const id = setInterval(load, 3000);
+    return () => clearInterval(id);
   }, [user]);
 
   if (!user) {

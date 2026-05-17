@@ -1,4 +1,17 @@
 /** Shared seed payloads for Firestore */
+const DISASTER_VIDEO_IDS = {
+  flood: 'Vh1JcB5FQEo',
+  cyclone: 'kPa0bs8eluk',
+  lightning: 'T_INfpX4KMI',
+  heatwave: 'osqVz49iBVw',
+  coldwave: 'GTyZ37_ROwU',
+  earthquake: '4e7Q8vBh4t4',
+  landslide: 'LwiOblv9ruc',
+  wildfire: 'cCkJnnGQ7yA',
+  drought: 'OB7rdqp1cGQ',
+  epidemic: 'mOV1aBVYKGA',
+};
+
 const QUIZ_TEMPLATE = (disasterId, title) => ({
   disasterId,
   questions: [
@@ -66,7 +79,9 @@ const disasters = [
     duringSteps: ['Follow alerts', 'Move to safe area', 'Help others safely', 'Reach assembly when directed'],
     afterSteps: ['Wait for all-clear', 'Check injuries', 'Avoid damaged areas', 'Use safe water'],
   },
-  videoUrl: '',
+  videoUrl: DISASTER_VIDEO_IDS[id]
+    ? `https://www.youtube.com/watch?v=${DISASTER_VIDEO_IDS[id]}`
+    : '',
   checklistItems: ['Kit ready', 'Contacts saved', 'Assembly point known', 'Documents secured'],
   quizId: `${id}_quiz`,
 }));
@@ -82,6 +97,16 @@ const resources = [
   { name: 'Patna Police HQ', type: 'police', lat: 25.61, lng: 85.13, district: 'Patna', state: 'Bihar', phone: '100' },
   { name: 'Boring Road Police', type: 'police', lat: 25.605, lng: 85.12, district: 'Patna', state: 'Bihar', phone: '100' },
   { name: 'NIT Patna Shelter', type: 'shelter', lat: 25.62, lng: 85.09, district: 'Patna', state: 'Bihar', phone: '' },
+  { name: 'IGIMS Patna', type: 'hospital', lat: 25.59, lng: 85.1, district: 'Patna', state: 'Bihar', phone: '0612-2450700' },
+  { name: 'Patliputra Medical', type: 'hospital', lat: 25.63, lng: 85.11, district: 'Patna', state: 'Bihar', phone: '0612-2262270' },
+  { name: 'Bailey Road Fire', type: 'fire_station', lat: 25.6, lng: 85.11, district: 'Patna', state: 'Bihar', phone: '101' },
+  { name: 'Fraser Road Shelter', type: 'shelter', lat: 25.61, lng: 85.14, district: 'Patna', state: 'Bihar', phone: '' },
+  { name: 'Patna City Police', type: 'police', lat: 25.594, lng: 85.137, district: 'Patna', state: 'Bihar', phone: '100' },
+  { name: 'Rajendra Nagar Hospital', type: 'hospital', lat: 25.598, lng: 85.152, district: 'Patna', state: 'Bihar', phone: '0612-2541169' },
+  { name: 'Kurji Fire Station', type: 'fire_station', lat: 25.605, lng: 85.095, district: 'Patna', state: 'Bihar', phone: '101' },
+  { name: 'Eco Park Shelter', type: 'shelter', lat: 25.635, lng: 85.105, district: 'Patna', state: 'Bihar', phone: '' },
+  { name: 'SP Office Patna', type: 'police', lat: 25.615, lng: 85.125, district: 'Patna', state: 'Bihar', phone: '100' },
+  { name: 'Nalanda Medical College', type: 'hospital', lat: 25.585, lng: 85.165, district: 'Patna', state: 'Bihar', phone: '0612-2357600' },
 ];
 
 module.exports = { disasters, resources, QUIZ_TEMPLATE };

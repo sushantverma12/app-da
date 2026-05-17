@@ -4,15 +4,23 @@ service cloud.firestore {
 
     function isAuth() { return request.auth != null; }
 
+    function userData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
     function isAdmin(schoolCode) {
       return isAuth() &&
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' &&
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.schoolCode == schoolCode;
+        userData().role == 'admin' &&
+        userData().schoolCode == schoolCode;
     }
 
     function isSchoolMember(schoolCode) {
-      return isAuth() &&
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.schoolCode == schoolCode;
+      return isAuth() && userData().schoolCode == schoolCode;
+    }
+
+    function onlyDrillCheckInFields() {
+      return request.resource.data.diff(resource.data).affectedKeys()
+        .hasOnly(['checkedInUIDs', 'checkedInCount', 'anonymousCount', 'lastScanAt', 'firstScanAt']);
     }
 
     match /disasters/{id} { allow read: if true; }
@@ -21,7 +29,8 @@ service cloud.firestore {
 
     match /users/{userId} {
       allow read: if isAuth() && request.auth.uid == userId;
-      allow write: if isAuth() && request.auth.uid == userId;
+      allow create: if isAuth() && request.auth.uid == userId;
+      allow update: if isAuth() && request.auth.uid == userId;
     }
 
     match /schools/{schoolCode} {
@@ -37,8 +46,9 @@ service cloud.firestore {
 
     match /drills/{drillId} {
       allow read: if isSchoolMember(resource.data.schoolCode);
-      allow create, update: if isAdmin(request.resource.data.schoolCode)
-        || isSchoolMember(resource.data.schoolCode);
+      allow create: if isAdmin(request.resource.data.schoolCode);
+      allow update: if isAdmin(resource.data.schoolCode)
+        || (isSchoolMember(resource.data.schoolCode) && onlyDrillCheckInFields());
     }
 
     match /messages/{schoolCode}/channel/{messageId} {

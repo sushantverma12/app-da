@@ -312,6 +312,28 @@ export async function fetchAlerts(schoolCode: string) {
   }));
 }
 
+export function subscribeAlerts(
+  schoolCode: string,
+  cb: (alerts: EmergencyAlert[]) => void
+): () => void {
+  if (!db) return () => {};
+  const q = query(
+    collection(db, 'alerts'),
+    where('schoolCode', '==', schoolCode),
+    orderBy('sentAt', 'desc'),
+    limit(50)
+  );
+  return onSnapshot(q, (snap) => {
+    cb(
+      snap.docs.map((d) => ({
+        id: d.id,
+        ...d.data(),
+        sentAt: (d.data().sentAt as Timestamp)?.toDate?.() ?? new Date(),
+      })) as EmergencyAlert[]
+    );
+  });
+}
+
 export function subscribeMessages(schoolCode: string, cb: (messages: ChannelMessage[]) => void) {
   if (!db) return () => {};
   const q = query(

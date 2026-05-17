@@ -59,6 +59,7 @@ export default function RootLayout() {
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="index" />
         <Stack.Screen name="home" />
+        <Stack.Screen name="location" />
         <Stack.Screen name="disaster/[id]" />
         <Stack.Screen name="quiz/[id]" />
         <Stack.Screen name="alerts" />

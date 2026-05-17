@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { View, Text, Pressable, StyleSheet, Alert, Linking } from 'react-native';
 import { useRouter, Stack } from 'expo-router';
 import { Waveform } from '@/components/Waveform';
 import { useAuthStore } from '@/store/authStore';
@@ -89,6 +89,21 @@ export default function StudentDrillScreen() {
         testID="checked-in-btn"
         style={[styles.btn, checkedIn && styles.btnDisabled]}
         disabled={checkedIn}
+        onPress={() => {
+          if (checkedIn || !user?.schoolCode) return;
+          const url = `appda://checkin?school=${user.schoolCode}`;
+          Alert.alert(
+            'Check in',
+            'Scan the QR poster at assembly, or tap Open check-in if testing on this device.',
+            [
+              { text: 'Cancel', style: 'cancel' },
+              {
+                text: 'Open check-in',
+                onPress: () => void Linking.openURL(url),
+              },
+            ]
+          );
+        }}
       >
         <Text style={styles.btnText}>{checkedIn ? 'Already checked in ✅' : 'Scan QR at assembly point'}</Text>
       </Pressable>

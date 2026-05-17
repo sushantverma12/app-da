@@ -3,6 +3,7 @@ import { useRouter, Stack } from 'expo-router';
 import { ScreenShell } from '@/components/ScreenShell';
 import { AppLogo } from '@/components/AppLogo';
 import { useAuthStore } from '@/store/authStore';
+import { BADGE_CATALOG } from '@/services/profile';
 import { Colors, radius } from '@/constants/theme';
 
 export default function ProfileScreen() {
@@ -68,7 +69,32 @@ export default function ProfileScreen() {
         <Pressable style={styles.btnOutline} onPress={() => router.push('/drill/setup')}>
           <Text style={styles.btnOutlineText}>Start mock drill</Text>
         </Pressable>
-      ) : null}
+      ) : (
+        <Pressable testID="student-drill-btn" style={styles.btnOutline} onPress={() => router.push('/drill/student')}>
+          <Text style={styles.btnOutlineText}>Join live drill</Text>
+        </Pressable>
+      )}
+      <Text style={styles.section}>Badges</Text>
+      {user.badgesEarned.length === 0 ? (
+        <Text style={styles.empty}>Complete quizzes and checklists to earn badges.</Text>
+      ) : (
+        <View style={styles.badgeRow}>
+          {BADGE_CATALOG.filter((b) => user.badgesEarned.includes(b.id)).map((b) => (
+            <View key={b.id} style={styles.badge}>
+              <Text style={styles.badgeIcon}>{b.icon}</Text>
+              <Text style={styles.badgeLabel}>{b.label}</Text>
+            </View>
+          ))}
+          {user.badgesEarned
+            .filter((id) => !BADGE_CATALOG.some((b) => b.id === id))
+            .map((id) => (
+              <View key={id} style={styles.badge}>
+                <Text style={styles.badgeIcon}>⭐</Text>
+                <Text style={styles.badgeLabel}>{id.replace(/_/g, ' ')}</Text>
+              </View>
+            ))}
+        </View>
+      )}
       <Text style={styles.section}>Quiz scores</Text>
       {scores.length === 0 ? (
         <Text style={styles.empty}>Complete quizzes to see progress here.</Text>
@@ -134,6 +160,18 @@ const styles = StyleSheet.create({
   section: { fontSize: 16, fontWeight: '700', marginTop: 8, marginBottom: 8 },
   empty: { color: Colors.textSecondary },
   scoreRow: { fontSize: 15, paddingVertical: 4, color: Colors.textPrimary },
+  badgeRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 8 },
+  badge: {
+    backgroundColor: Colors.white,
+    borderRadius: radius.card,
+    borderWidth: 1,
+    borderColor: Colors.cardBorder,
+    padding: 10,
+    width: '47%',
+    alignItems: 'center',
+  },
+  badgeIcon: { fontSize: 24 },
+  badgeLabel: { fontSize: 11, textAlign: 'center', marginTop: 4, color: Colors.textSecondary },
   btn: {
     backgroundColor: Colors.primaryBlue,
     padding: 16,

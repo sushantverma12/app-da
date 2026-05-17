@@ -92,3 +92,15 @@ export async function localGetSession(): Promise<AppUser | null> {
 export async function localLogout(): Promise<void> {
   await AsyncStorage.removeItem(SESSION_KEY);
 }
+
+export async function localUpdateProfile(uid: string, data: Partial<AppUser>): Promise<AppUser | null> {
+  const users = await getUsers();
+  const entry = Object.entries(users).find(([, u]) => u.uid === uid);
+  if (!entry) return null;
+  const [email, user] = entry;
+  const updated = { ...user, ...data };
+  users[email] = updated;
+  await AsyncStorage.setItem(USERS_KEY, JSON.stringify(users));
+  const { password: _, ...profile } = updated;
+  return profile;
+}

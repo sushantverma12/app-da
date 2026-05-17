@@ -7,6 +7,8 @@ import { FeaturedRiskCard } from '@/components/FeaturedRiskCard';
 import { DisasterGridCard } from '@/components/DisasterGridCard';
 import { useDisasterStore } from '@/store/disasterStore';
 import { useAuthStore } from '@/store/authStore';
+import { DrillAlertBanner } from '@/components/DrillAlertBanner';
+import { useActiveSchoolDrill } from '@/hooks/useActiveSchoolDrill';
 import { getRiskForRegion, riskSortOrder } from '@/constants/disasters';
 import { Colors, radius } from '@/constants/theme';
 
@@ -17,14 +19,17 @@ export default function HomeScreen() {
   const disastersLoading = useDisasterStore((s) => s.disastersLoading);
   const backendMode = useDisasterStore((s) => s.backendMode);
   const fetchDisasters = useDisasterStore((s) => s.fetchDisasters);
+  const initJoinBanner = useDisasterStore((s) => s.initJoinBanner);
   const dismissed = useDisasterStore((s) => s.dismissedJoinBanner);
   const dismissBanner = useDisasterStore((s) => s.dismissJoinBanner);
   const user = useAuthStore((s) => s.user);
+  const { drill: activeDrill } = useActiveSchoolDrill();
   const [bannerVisible, setBannerVisible] = useState(!dismissed);
 
   useEffect(() => {
+    void initJoinBanner();
     fetchDisasters();
-  }, [fetchDisasters]);
+  }, [fetchDisasters, initJoinBanner]);
 
   const sorted = useMemo(() => {
     const district = location?.district ?? 'Patna';
@@ -44,7 +49,11 @@ export default function HomeScreen() {
     <ScreenShell testID="home-screen">
       <View style={styles.header}>
         <Text style={styles.brand}>App-da</Text>
-        <Pressable style={styles.chip} testID="location-chip">
+        <Pressable
+          style={styles.chip}
+          testID="location-chip"
+          onPress={() => router.push('/location')}
+        >
           <Feather name="map-pin" size={14} color={Colors.primaryBlue} />
           <Text style={styles.chipText}>
             {location ? `${location.city}, ${location.state}` : 'Set location'}
@@ -55,6 +64,8 @@ export default function HomeScreen() {
       {backendMode === 'firebase' ? (
         <Text style={styles.backendBadge} testID="backend-firebase">● Firebase connected</Text>
       ) : null}
+
+      {activeDrill ? <DrillAlertBanner drill={activeDrill} /> : null}
 
       {disastersLoading ? (
         <ActivityIndicator color={Colors.primaryBlue} style={{ marginVertical: 24 }} />

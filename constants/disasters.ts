@@ -1,4 +1,5 @@
 import { Disaster, Quiz, Resource } from '@/types';
+import { defaultVideoUrl } from '@/constants/disasterVideos';
 
 export const DISASTER_META: { id: string; title: string; icon: string; description: string }[] = [
   { id: 'flood', title: 'Flood', icon: '🌊', description: 'Riverine, flash, and coastal flooding' },
@@ -58,7 +59,7 @@ function makeDisaster(
         'Use only safe drinking water',
       ],
     },
-    videoUrl: '',
+    videoUrl: defaultVideoUrl(id),
     checklistItems: ['Emergency kit ready', 'Contacts saved', 'Assembly point known', 'Documents secured'],
     quizId: `${id}_quiz`,
   };
@@ -121,6 +122,16 @@ export const LOCAL_RESOURCES: Resource[] = [
   { id: 'patna_7', name: 'Patna Police HQ', type: 'police', lat: 25.61, lng: 85.13, district: 'Patna', state: 'Bihar', phone: '100' },
   { id: 'patna_8', name: 'Boring Road Police Station', type: 'police', lat: 25.605, lng: 85.12, district: 'Patna', state: 'Bihar', phone: '100' },
   { id: 'patna_9', name: 'AIIMS Patna', type: 'hospital', lat: 25.58, lng: 85.09, district: 'Patna', state: 'Bihar', phone: '0612-2453600' },
+  { id: 'patna_10', name: 'IGIMS Patna', type: 'hospital', lat: 25.59, lng: 85.1, district: 'Patna', state: 'Bihar', phone: '0612-2450700' },
+  { id: 'patna_11', name: 'Patliputra Medical', type: 'hospital', lat: 25.63, lng: 85.11, district: 'Patna', state: 'Bihar', phone: '0612-2262270' },
+  { id: 'patna_12', name: 'Bailey Road Fire', type: 'fire_station', lat: 25.6, lng: 85.11, district: 'Patna', state: 'Bihar', phone: '101' },
+  { id: 'patna_13', name: 'Fraser Road Shelter', type: 'shelter', lat: 25.61, lng: 85.14, district: 'Patna', state: 'Bihar', phone: '' },
+  { id: 'patna_14', name: 'Patna City Police', type: 'police', lat: 25.594, lng: 85.137, district: 'Patna', state: 'Bihar', phone: '100' },
+  { id: 'patna_15', name: 'Rajendra Nagar Hospital', type: 'hospital', lat: 25.598, lng: 85.152, district: 'Patna', state: 'Bihar', phone: '0612-2541169' },
+  { id: 'patna_16', name: 'Kurji Fire Station', type: 'fire_station', lat: 25.605, lng: 85.095, district: 'Patna', state: 'Bihar', phone: '101' },
+  { id: 'patna_17', name: 'Eco Park Shelter', type: 'shelter', lat: 25.635, lng: 85.105, district: 'Patna', state: 'Bihar', phone: '' },
+  { id: 'patna_18', name: 'SP Office Patna', type: 'police', lat: 25.615, lng: 85.125, district: 'Patna', state: 'Bihar', phone: '100' },
+  { id: 'patna_19', name: 'Nalanda Medical College', type: 'hospital', lat: 25.585, lng: 85.165, district: 'Patna', state: 'Bihar', phone: '0612-2357600' },
 ];
 
 export function getRiskForRegion(

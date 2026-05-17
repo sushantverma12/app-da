@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, Pressable, Share, Alert } from 'react-native';
 import QRCode from 'react-native-qrcode-svg';
 import { Colors, radius } from '@/constants/theme';
 
@@ -20,6 +20,22 @@ export function QRCard({ schoolCode, qrData, schoolName }: Props) {
         <QRCode value={qrData} size={180} />
       </View>
       <Text style={styles.hint}>Print this QR and place it at your assembly point.</Text>
+      <Pressable
+        testID="share-qr-link"
+        style={styles.shareBtn}
+        onPress={async () => {
+          try {
+            await Share.share({
+              message: `App-da assembly check-in\nSchool: ${schoolCode}\n${qrData}`,
+              title: 'App-da check-in link',
+            });
+          } catch {
+            Alert.alert('Could not share link');
+          }
+        }}
+      >
+        <Text style={styles.shareText}>Share check-in link</Text>
+      </Pressable>
     </View>
   );
 }
@@ -39,4 +55,13 @@ const styles = StyleSheet.create({
   code: { fontSize: 32, fontWeight: '800', color: Colors.primaryBlue, letterSpacing: 4 },
   qrWrap: { padding: 16, marginVertical: 8 },
   hint: { fontSize: 13, color: Colors.textSecondary, textAlign: 'center' },
+  shareBtn: {
+    marginTop: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: radius.button,
+    borderWidth: 1,
+    borderColor: Colors.primaryBlue,
+  },
+  shareText: { color: Colors.primaryBlue, fontWeight: '600', fontSize: 14 },
 });

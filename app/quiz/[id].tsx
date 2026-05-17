@@ -3,7 +3,7 @@ import { View, Text, Pressable, StyleSheet, ActivityIndicator } from 'react-nati
 import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
 import { loadQuiz } from '@/services/content';
 import { useAuthStore } from '@/store/authStore';
-import { updateUserProfile, isFirebaseConfigured } from '@/services/firebase';
+import { saveUserProfile, mergeQuizProgress } from '@/services/profile';
 import { Quiz } from '@/types';
 import { Colors, radius } from '@/constants/theme';
 
@@ -57,10 +57,9 @@ export default function QuizScreen() {
       const total = quiz.questions.length;
       const pct = Math.round((score / total) * 100);
       setDone(true);
-      if (user && isFirebaseConfigured) {
-        await updateUserProfile(user.uid, {
-          quizScores: { ...user.quizScores, [quiz.disasterId]: pct },
-        });
+      if (user) {
+        const progress = mergeQuizProgress(user, quiz.disasterId, pct);
+        await saveUserProfile(user.uid, progress);
       }
       return;
     }

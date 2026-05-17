@@ -1,13 +1,15 @@
 import { useEffect, useState } from 'react';
 import { View, Text, Pressable, StyleSheet, ScrollView, Switch, ActivityIndicator } from 'react-native';
 import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
-import Feather from '@expo/vector-icons/Feather';
 import { ResourceMap } from '@/components/ResourceMap';
 import { getRiskForRegion } from '@/constants/disasters';
 import { loadDisasterById, loadResources } from '@/services/content';
 import { useDisasterStore } from '@/store/disasterStore';
+import { useAuthStore } from '@/store/authStore';
+import { mergeModuleComplete, saveUserProfile } from '@/services/profile';
 import { RiskBadge } from '@/components/RiskBadge';
 import { DisasterIcon } from '@/components/DisasterIcon';
+import { DisasterVideoLesson } from '@/components/DisasterVideoLesson';
 import { Disaster, Resource } from '@/types';
 import { Colors, radius } from '@/constants/theme';
 
@@ -21,6 +23,7 @@ export default function DisasterDetailScreen() {
   const loadChecklist = useDisasterStore((s) => s.loadChecklist);
   const toggleChecklistItem = useDisasterStore((s) => s.toggleChecklistItem);
   const checklistProgress = useDisasterStore((s) => s.checklistProgress);
+  const user = useAuthStore((s) => s.user);
   const [tab, setTab] = useState<Tab>('learn');
   const [disaster, setDisaster] = useState<Disaster | null>(
     () => disasters.find((d) => d.id === id) ?? null
@@ -52,6 +55,18 @@ export default function DisasterDetailScreen() {
   useEffect(() => {
     if (disaster) loadChecklist(disaster.id);
   }, [disaster?.id, loadChecklist]);
+
+  useEffect(() => {
+    if (!disaster || !user) return;
+    const checks = checklistProgress[disaster.id] ?? [];
+    if (
+      checks.length === disaster.checklistItems.length &&
+      checks.every(Boolean) &&
+      !user.completedModules.includes(disaster.id)
+    ) {
+      void saveUserProfile(user.uid, mergeModuleComplete(user, disaster.id));
+    }
+  }, [checklistProgress, disaster, user]);
 
   if (loading) {
     return (
@@ -111,10 +126,7 @@ export default function DisasterDetailScreen() {
               {disaster.contentSections.afterSteps.map((item, i) => (
                 <Text key={i} style={styles.li}>• {item}</Text>
               ))}
-              <View style={styles.videoPlaceholder}>
-                <Feather name="film" size={24} color={Colors.textSecondary} />
-                <Text style={styles.videoText}>AI video lesson (coming soon)</Text>
-              </View>
+              <DisasterVideoLesson disasterId={disaster.id} firestoreVideoUrl={disaster.videoUrl} />
             </View>
           )}
 
@@ -166,17 +178,6 @@ const styles = StyleSheet.create({
   h2: { fontSize: 17, fontWeight: '700', marginTop: 16, marginBottom: 8, color: Colors.textPrimary },
   p: { fontSize: 15, lineHeight: 22, color: Colors.textSecondary },
   li: { fontSize: 15, lineHeight: 24, color: Colors.textSecondary },
-  videoPlaceholder: {
-    marginTop: 20,
-    padding: 24,
-    backgroundColor: Colors.white,
-    borderRadius: radius.card,
-    borderWidth: 1,
-    borderColor: Colors.cardBorder,
-    alignItems: 'center',
-    gap: 8,
-  },
-  videoText: { color: Colors.textSecondary },
   checkRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 10 },
   checkLabel: { fontSize: 15, flex: 1, color: Colors.textPrimary },
   quizBtn: { backgroundColor: Colors.primaryBlue, padding: 16, borderRadius: radius.button, alignItems: 'center' },

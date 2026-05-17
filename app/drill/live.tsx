@@ -44,6 +44,12 @@ export default function DrillLiveScreen() {
     : 0;
   const mins = Math.floor(secondsLeft / 60);
   const secs = secondsLeft % 60;
+  const ago = (d?: Date) => {
+    if (!d) return '—';
+    const sec = Math.floor((Date.now() - new Date(d).getTime()) / 1000);
+    if (sec < 60) return `${sec}s ago`;
+    return `${Math.floor(sec / 60)}m ago`;
+  };
 
   const endEarly = async () => {
     await completeDrill(drill.id);
@@ -79,8 +85,10 @@ export default function DrillLiveScreen() {
       </View>
       <Text style={styles.pct}>{pct}% safe</Text>
       <Text style={styles.timer}>
-        ⏱️ {mins}:{secs.toString().padStart(2, '0')}
+        ⏱️ {mins}:{secs.toString().padStart(2, '0')} remaining
       </Text>
+      <Text style={styles.scanMeta}>First check-in: {ago(drill.firstScanAt)}</Text>
+      <Text style={styles.scanMeta}>Last check-in: {ago(drill.lastScanAt)}</Text>
       <Pressable testID="end-drill-btn" style={styles.btnDanger} onPress={endEarly}>
         <Text style={styles.btnText}>End drill early</Text>
       </Pressable>
@@ -96,7 +104,8 @@ const styles = StyleSheet.create({
   barBg: { height: 12, backgroundColor: '#E0E0E0', borderRadius: 6, overflow: 'hidden' },
   barFill: { height: '100%', backgroundColor: Colors.safeGreen },
   pct: { textAlign: 'center', marginTop: 8, fontSize: 18, color: Colors.textSecondary },
-  timer: { textAlign: 'center', fontSize: 24, marginVertical: 24 },
+  timer: { textAlign: 'center', fontSize: 24, marginVertical: 16 },
+  scanMeta: { textAlign: 'center', fontSize: 14, color: Colors.textSecondary, marginBottom: 4 },
   title: { fontSize: 24, fontWeight: '800', marginBottom: 16 },
   stat: { fontSize: 16, marginBottom: 8, color: Colors.textPrimary },
   btn: { backgroundColor: Colors.primaryBlue, padding: 16, borderRadius: radius.button, alignItems: 'center', marginTop: 24 },
