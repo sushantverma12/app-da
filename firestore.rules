@@ -1,0 +1,49 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isAuth() { return request.auth != null; }
+
+    function isAdmin(schoolCode) {
+      return isAuth() &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.schoolCode == schoolCode;
+    }
+
+    function isSchoolMember(schoolCode) {
+      return isAuth() &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.schoolCode == schoolCode;
+    }
+
+    match /disasters/{id} { allow read: if true; }
+    match /quizzes/{id} { allow read: if true; }
+    match /resources/{id} { allow read: if true; }
+
+    match /users/{userId} {
+      allow read: if isAuth() && request.auth.uid == userId;
+      allow write: if isAuth() && request.auth.uid == userId;
+    }
+
+    match /schools/{schoolCode} {
+      allow read: if true;
+      allow create: if isAuth();
+      allow update: if isAdmin(schoolCode);
+    }
+
+    match /alerts/{alertId} {
+      allow read: if isSchoolMember(resource.data.schoolCode);
+      allow create: if isAdmin(request.resource.data.schoolCode);
+    }
+
+    match /drills/{drillId} {
+      allow read: if isSchoolMember(resource.data.schoolCode);
+      allow create, update: if isAdmin(request.resource.data.schoolCode)
+        || isSchoolMember(resource.data.schoolCode);
+    }
+
+    match /messages/{schoolCode}/channel/{messageId} {
+      allow read: if isSchoolMember(schoolCode);
+      allow create: if isSchoolMember(schoolCode);
+    }
+  }
+}
