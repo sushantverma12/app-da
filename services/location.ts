@@ -29,10 +29,18 @@ export async function requestAndResolveLocation(): Promise<{
   const { status } = await Location.requestForegroundPermissionsAsync();
   if (status !== 'granted') return { granted: false, location: null };
   const pos = await Location.getCurrentPositionAsync({});
-  const [geo] = await Location.reverseGeocodeAsync({
+  const geocodeResult = await Location.reverseGeocodeAsync({
     latitude: pos.coords.latitude,
     longitude: pos.coords.longitude,
   });
+  
+  const geo = geocodeResult && geocodeResult.length > 0 ? geocodeResult[0] : null;
+  
+  if (!geo) {
+    // Reverse geocoding failed (common on Web without an API key)
+    throw new Error('Reverse geocoding is not supported on this platform. Please enter your city manually.');
+  }
+
   const loc: LocationInfo = {
     city: geo.city ?? geo.subregion ?? geo.region ?? 'Unknown',
     district: geo.subregion ?? geo.city ?? geo.region ?? 'Unknown',
