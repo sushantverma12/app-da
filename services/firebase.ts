@@ -307,11 +307,12 @@ export async function completeDrill(drillId: string) {
 
 export async function sendEmergencyAlert(alert: Omit<EmergencyAlert, 'id' | 'sentAt'>) {
   if (!db) throw new Error('Firebase not configured');
-  await addDoc(collection(db, 'alerts'), {
+  const ref = await addDoc(collection(db, 'alerts'), {
     ...alert,
     acknowledgedBy: [],
     sentAt: serverTimestamp(),
   });
+  return ref.id;
 }
 
 export async function deleteAlert(alertId: string): Promise<void> {

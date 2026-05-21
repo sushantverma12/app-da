@@ -5,7 +5,6 @@ import Feather from '@expo/vector-icons/Feather';
 import { ScreenShell } from '@/components/ScreenShell';
 import { useAuthStore } from '@/store/authStore';
 import {
-  fetchAlerts,
   sendEmergencyAlert,
   subscribeAlerts,
   deleteAlert,
@@ -92,14 +91,21 @@ export default function AlertsScreen() {
     if (!message.trim()) return;
     try {
       if (isFirebaseConfigured) {
-        await sendEmergencyAlert({
+        const alert = {
           schoolCode: user.schoolCode,
           type,
           message: message.trim(),
           sentBy: user.uid,
-        });
-        const list = await fetchAlerts(user.schoolCode);
-        setAlerts(list as EmergencyAlert[]);
+        };
+        const id = await sendEmergencyAlert(alert);
+        setAlerts((list) => [
+          {
+            id,
+            ...alert,
+            sentAt: new Date(),
+          },
+          ...list.filter((item) => item.id !== id),
+        ]);
       } else {
         const alert: EmergencyAlert = {
           id: `alert_${Date.now()}`,
@@ -222,7 +228,8 @@ export default function AlertsScreen() {
                     hitSlop={12}
                     accessibilityLabel="Delete alert"
                   >
-                    <Feather name="trash-2" size={18} color={Colors.dangerRed} />
+                    <Feather name="trash-2" size={16} color={Colors.dangerRed} />
+                    <Text style={styles.deleteIconText}>Delete</Text>
                   </Pressable>
                 )
               ) : null}
@@ -290,7 +297,10 @@ const styles = StyleSheet.create({
     minHeight: 40,
     alignItems: 'center',
     justifyContent: 'center',
+    flexDirection: 'row',
+    gap: 4,
   },
+  deleteIconText: { color: Colors.dangerRed, fontWeight: '700', fontSize: 13 },
   deleteConfirmRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   deleteConfirmBtn: {
     backgroundColor: Colors.dangerRed,

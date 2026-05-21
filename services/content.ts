@@ -99,19 +99,24 @@ export async function loadResources(
     if (!remote?.length) {
       return localResources;
     }
-    const remoteResources = remote.map((row) => {
-      const r = row as Record<string, unknown>;
-      return {
-        id: r.id as string,
-        name: r.name as string,
-        type: r.type as Resource['type'],
-        lat: r.lat as number,
-        lng: r.lng as number,
-        district: r.district as string,
-        state: r.state as string,
-        phone: (r.phone as string) ?? '',
-      };
-    });
+    const remoteResources = remote
+      .map((row): Resource | null => {
+        const r = row as Record<string, unknown>;
+        const lat = Number(r.lat);
+        const lng = Number(r.lng);
+        if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+        return {
+          id: r.id as string,
+          name: r.name as string,
+          type: r.type as Resource['type'],
+          lat,
+          lng,
+          district: r.district as string,
+          state: r.state as string,
+          phone: (r.phone as string) ?? '',
+        };
+      })
+      .filter((resource): resource is Resource => resource !== null);
     return filterResourcesByLocation(remoteResources, district, state);
   } catch {
     return localResources;
