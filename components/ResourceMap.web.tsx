@@ -9,6 +9,15 @@ interface Props {
   center?: { lat: number; lng: number } | null;
 }
 
+const UNIVERSAL_HELPLINES = [
+  { label: 'National emergency', number: '112' },
+  { label: 'Ambulance', number: '108' },
+  { label: 'Fire', number: '101' },
+  { label: 'Police', number: '100' },
+  { label: 'Disaster management', number: '1078' },
+  { label: 'Child helpline', number: '1098' },
+];
+
 export function ResourceMap({ resources, district, center: fallbackCenter }: Props) {
   const center = getMapCenter(resources, fallbackCenter);
   const iframeSrc = `https://www.openstreetmap.org/export/embed.html?bbox=${center.lng - 0.06}%2C${center.lat - 0.04}%2C${center.lng + 0.06}%2C${center.lat + 0.04}&layer=mapnik&marker=${center.lat}%2C${center.lng}`;
@@ -26,7 +35,19 @@ export function ResourceMap({ resources, district, center: fallbackCenter }: Pro
 
       <Text style={styles.note}>Nearby resources for {district} — tap a card for directions:</Text>
       {resources.length === 0 ? (
-        <Text style={styles.empty}>No resources found for {district}.</Text>
+        <View style={styles.helplineWrap}>
+          <Text style={styles.empty}>No local resources found for {district}. Use these national helplines:</Text>
+          {UNIVERSAL_HELPLINES.map((helpline) => (
+            <Pressable
+              key={helpline.number}
+              style={styles.card}
+              onPress={() => Linking.openURL(`tel:${helpline.number}`)}
+            >
+              <Text style={styles.name}>{helpline.label}</Text>
+              <Text style={styles.phone}>{helpline.number} · Tap to call</Text>
+            </Pressable>
+          ))}
+        </View>
       ) : (
         resources.map((r) => (
           <Pressable
@@ -57,7 +78,7 @@ function getMapCenter(
   resources: Resource[],
   fallbackCenter?: { lat: number; lng: number } | null
 ): { lat: number; lng: number } {
-  if (resources.length === 0) return fallbackCenter ?? { lat: 22.5726, lng: 88.3639 };
+  if (resources.length === 0) return fallbackCenter ?? { lat: 20.5937, lng: 78.9629 };
   const totals = resources.reduce(
     (acc, resource) => ({
       lat: acc.lat + resource.lat,
@@ -85,7 +106,8 @@ const styles = StyleSheet.create({
     borderWidth: 0,
   },
   note: { fontSize: 13, color: Colors.textSecondary, marginBottom: 8 },
-  empty: { color: Colors.textSecondary },
+  empty: { color: Colors.textSecondary, lineHeight: 20, marginBottom: 8 },
+  helplineWrap: { gap: 8 },
   card: {
     backgroundColor: Colors.white,
     borderRadius: radius.card,

@@ -1,9 +1,14 @@
+const fs = require('fs');
+
 // Load .env for EXPO_PUBLIC_FIREBASE_* when running locally
 try {
   require('dotenv').config();
 } catch {
   /* dotenv optional */
 }
+
+const googleServicesFile = './google-services.json';
+const androidGoogleServicesFile = fs.existsSync(googleServicesFile) ? googleServicesFile : undefined;
 
 export default {
   expo: {
@@ -32,6 +37,7 @@ export default {
       },
     },
     android: {
+      ...(androidGoogleServicesFile ? { googleServicesFile: androidGoogleServicesFile } : {}),
       adaptiveIcon: {
         foregroundImage: './assets/images/adaptive-icon.png',
         backgroundColor: '#F8F9FA',

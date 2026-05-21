@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "830764255157",
+    "project_id": "app-da-ee9cb",
+    "storage_bucket": "app-da-ee9cb.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:830764255157:android:4eace6d7782419623cbbfc",
+        "android_client_info": {
+          "package_name": "com.appda.mobile"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDeNI0o27n_xE4EpiFC3cgNlBIfFIhkPVg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

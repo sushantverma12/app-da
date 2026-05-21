@@ -108,7 +108,11 @@ export async function registerForPushNotifications(uid?: string): Promise<string
     return token;
   } catch (err) {
     console.warn('[App-da push] token registration failed', err);
-    await savePushStatus('token-error', err instanceof Error ? err.message : String(err));
+    const message = err instanceof Error ? err.message : String(err);
+    const detail = message.includes('Default FirebaseApp is not initialized')
+      ? 'Android push is missing google-services.json in the native build. Add the Firebase Android app config for com.appda.mobile, configure FCM V1 credentials in EAS, then rebuild and reinstall the APK.'
+      : message;
+    await savePushStatus('token-error', detail);
     return null;
   }
 }
