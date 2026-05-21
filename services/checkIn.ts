@@ -1,4 +1,4 @@
-import { Platform, Linking, Alert } from 'react-native';
+import { Platform, Alert } from 'react-native';
 
 export function checkInWebPath(schoolCode: string): string {
   return `/checkin?school=${schoolCode.toUpperCase()}`;
@@ -15,27 +15,22 @@ export function checkInWebUrl(schoolCode: string): string {
   return checkInDeepLink(schoolCode);
 }
 
-/** Open check-in: web uses in-app route; native uses deep link with web fallback. */
+/** Open check-in in-app (avoids Linking.openURL, which fails on Android in dev). */
 export async function openCheckIn(
   schoolCode: string,
   navigate?: (path: string) => void
 ): Promise<void> {
-  const code = schoolCode.toUpperCase();
-  if (Platform.OS === 'web') {
-    navigate?.(checkInWebPath(code));
+  const path = checkInWebPath(schoolCode.toUpperCase());
+  if (navigate) {
+    navigate(path);
     return;
   }
-  const deep = checkInDeepLink(code);
-  try {
-    const can = await Linking.canOpenURL(deep);
-    if (can) {
-      await Linking.openURL(deep);
-      return;
-    }
-  } catch {
-    /* fall through */
+  if (Platform.OS === 'web' && typeof window !== 'undefined') {
+    window.location.assign(path);
+    return;
   }
-  navigate?.(checkInWebPath(code));
+  const { router } = await import('expo-router');
+  router.push({ pathname: '/checkin', params: { school: schoolCode.toUpperCase() } });
 }
 
 export async function shareCheckInLink(schoolCode: string): Promise<void> {

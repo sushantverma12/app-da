@@ -1,28 +1,20 @@
-import { View, StyleSheet } from 'react-native';
-import Feather from '@expo/vector-icons/Feather';
-import { Colors } from '@/constants/theme';
+import { Image, StyleSheet } from 'react-native';
+
+const logo = require('@/assets/images/app-logo.png');
 
 export function AppLogo({ size = 80, variant = 'default' }: { size?: number; variant?: 'default' | 'light' }) {
-  const iconColor = variant === 'light' ? Colors.white : Colors.primaryBlue;
-  const bg = variant === 'light' ? 'rgba(255,255,255,0.2)' : '#E8F0FE';
+  const opacity = variant === 'light' ? 0.98 : 1;
   return (
-    <View style={[styles.wrap, { width: size, height: size, borderRadius: size * 0.22, backgroundColor: bg }]}>
-      <View style={styles.shield}>
-        <Feather name="shield" size={size * 0.45} color={iconColor} />
-        <View style={styles.person}>
-          <Feather name="user" size={size * 0.22} color={iconColor} />
-        </View>
-      </View>
-    </View>
+    <Image
+      source={logo}
+      resizeMode="contain"
+      style={[styles.logo, { width: size, height: size, opacity }]}
+    />
   );
 }
 
 const styles = StyleSheet.create({
-  wrap: {
-    alignItems: 'center',
-    justifyContent: 'center',
+  logo: {
     alignSelf: 'center',
   },
-  shield: { alignItems: 'center', justifyContent: 'center' },
-  person: { position: 'absolute', bottom: '28%' },
 });

@@ -2,7 +2,6 @@ import { ReactNode } from 'react';
 import { View, StyleSheet, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { BottomNavbar } from './BottomNavbar';
-import { useColorScheme } from './useColorScheme';
 import { Colors } from '@/constants/theme';
 
 export function ScreenShell({
@@ -16,8 +15,6 @@ export function ScreenShell({
   showNav?: boolean;
   testID?: string;
 }) {
-  const scheme = useColorScheme();
-  const bg = scheme === 'dark' ? Colors.bgDark : Colors.bgLight;
   const body = scroll ? (
     <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
       {children}
@@ -26,7 +23,7 @@ export function ScreenShell({
     <View style={styles.flex}>{children}</View>
   );
   return (
-    <SafeAreaView style={[styles.safe, { backgroundColor: bg }]} edges={['top']} testID={testID}>
+    <SafeAreaView style={styles.safe} edges={['top']} testID={testID}>
       {body}
       {showNav ? <BottomNavbar /> : null}
     </SafeAreaView>
@@ -34,7 +31,7 @@ export function ScreenShell({
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1 },
+  safe: { flex: 1, backgroundColor: Colors.bgLight },
   scroll: { padding: 16, paddingBottom: 24 },
   flex: { flex: 1, padding: 16 },
 });

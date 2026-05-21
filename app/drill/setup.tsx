@@ -4,7 +4,6 @@ import { useRouter, Stack } from 'expo-router';
 import { DISASTER_META } from '@/constants/disasters';
 import { useAuthStore } from '@/store/authStore';
 import { startDrill } from '@/services/drills';
-import { notifyDrillStart } from '@/services/notifications';
 import { DisasterIcon } from '@/components/DisasterIcon';
 import { Colors, radius } from '@/constants/theme';
 
@@ -44,11 +43,6 @@ export default function DrillSetupScreen() {
         startedAt: new Date(),
         durationMinutes: mins,
         expectedCount: count,
-      });
-      await notifyDrillStart({
-        drillId: id,
-        disasterType,
-        schoolCode: user.schoolCode,
       });
       router.replace({ pathname: '/drill/live', params: { drillId: id } });
     } catch (e: unknown) {

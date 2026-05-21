@@ -10,6 +10,7 @@ export default function DrillLiveScreen() {
   const router = useRouter();
   const [drill, setDrill] = useState<Drill | null>(null);
   const [secondsLeft, setSecondsLeft] = useState(0);
+  const [ending, setEnding] = useState(false);
 
   useEffect(() => {
     if (!drillId) return;
@@ -23,7 +24,7 @@ export default function DrillLiveScreen() {
       const left = Math.max(0, Math.floor((end - Date.now()) / 1000));
       setSecondsLeft(left);
       if (left === 0 && drill.status === 'active') {
-        completeDrill(drill.id);
+        void completeDrill(drill.id);
       }
     };
     tick();
@@ -52,8 +53,13 @@ export default function DrillLiveScreen() {
   };
 
   const endEarly = async () => {
-    await completeDrill(drill.id);
-    router.back();
+    if (ending) return;
+    setEnding(true);
+    try {
+      await completeDrill(drill.id);
+    } finally {
+      setEnding(false);
+    }
   };
 
   if (drill.status === 'completed') {
@@ -89,8 +95,13 @@ export default function DrillLiveScreen() {
       </Text>
       <Text style={styles.scanMeta}>First check-in: {ago(drill.firstScanAt)}</Text>
       <Text style={styles.scanMeta}>Last check-in: {ago(drill.lastScanAt)}</Text>
-      <Pressable testID="end-drill-btn" style={styles.btnDanger} onPress={endEarly}>
-        <Text style={styles.btnText}>End drill early</Text>
+      <Pressable
+        testID="end-drill-btn"
+        style={[styles.btnDanger, ending && styles.btnDisabled]}
+        onPress={() => void endEarly()}
+        disabled={ending}
+      >
+        <Text style={styles.btnText}>{ending ? 'Ending drill...' : 'End drill'}</Text>
       </Pressable>
     </View>
   );
@@ -110,5 +121,6 @@ const styles = StyleSheet.create({
   stat: { fontSize: 16, marginBottom: 8, color: Colors.textPrimary },
   btn: { backgroundColor: Colors.primaryBlue, padding: 16, borderRadius: radius.button, alignItems: 'center', marginTop: 24 },
   btnDanger: { backgroundColor: Colors.dangerRed, padding: 16, borderRadius: radius.button, alignItems: 'center' },
+  btnDisabled: { opacity: 0.65 },
   btnText: { color: Colors.white, fontWeight: '700' },
 });

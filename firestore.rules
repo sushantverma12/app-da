@@ -42,6 +42,8 @@ service cloud.firestore {
     match /alerts/{alertId} {
       allow read: if isSchoolMember(resource.data.schoolCode);
       allow create: if isAdmin(request.resource.data.schoolCode);
+      allow delete: if isAdmin(resource.data.schoolCode)
+        || (isAuth() && resource.data.sentBy == request.auth.uid);
     }
 
     match /drills/{drillId} {

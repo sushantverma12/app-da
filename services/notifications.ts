@@ -4,11 +4,37 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { updateUserProfile, isFirebaseConfigured } from './firebase';
 
 const TOPICS_KEY = 'appda_push_topics';
+const PUSH_STATUS_KEY = 'appda_push_status';
 
-/** Remote push is not available in Expo Go (SDK 53+). Local alerts still work in dev builds. */
+function getEasProjectId(): string | undefined {
+  const extra = Constants.expoConfig?.extra as { eas?: { projectId?: string } } | undefined;
+  return extra?.eas?.projectId || Constants.easConfig?.projectId;
+}
+
+/** Remote push requires an EAS development/preview/production build (not Expo Go). */
 export function isPushAvailable(): boolean {
   if (Platform.OS === 'web') return false;
   return Constants.appOwnership !== 'expo';
+}
+
+export function getPushSetupHint(): string {
+  if (Platform.OS === 'web') return 'Push is not available on web.';
+  if (Constants.appOwnership === 'expo') {
+    return 'Install an EAS build (preview APK) to receive remote push. Expo Go only gets local notifications + home drill banner.';
+  }
+  if (!getEasProjectId()) {
+    return 'Run `eas init` and set EXPO_PUBLIC_EAS_PROJECT_ID in .env for push tokens.';
+  }
+  return '';
+}
+
+export async function getPushStatus(): Promise<{
+  status: string;
+  detail: string;
+  checkedAt: string;
+} | null> {
+  const raw = await AsyncStorage.getItem(PUSH_STATUS_KEY);
+  return raw ? JSON.parse(raw) : null;
 }
 
 async function getNotifications() {
@@ -16,9 +42,19 @@ async function getNotifications() {
   return import('expo-notifications');
 }
 
+async function savePushStatus(status: string, detail = '') {
+  await AsyncStorage.setItem(
+    PUSH_STATUS_KEY,
+    JSON.stringify({ status, detail, checkedAt: new Date().toISOString() })
+  );
+}
+
 export async function registerForPushNotifications(uid?: string): Promise<string | null> {
   const Notifications = await getNotifications();
-  if (!Notifications) return null;
+  if (!Notifications) {
+    await savePushStatus('unavailable', getPushSetupHint());
+    return null;
+  }
 
   Notifications.setNotificationHandler({
     handleNotification: async () => ({
@@ -36,11 +72,14 @@ export async function registerForPushNotifications(uid?: string): Promise<string
     const { status } = await Notifications.requestPermissionsAsync();
     finalStatus = status;
   }
-  if (finalStatus !== 'granted') return null;
+  if (finalStatus !== 'granted') {
+    await savePushStatus('permission-denied', finalStatus);
+    return null;
+  }
 
   if (Platform.OS === 'android') {
     await Notifications.setNotificationChannelAsync('default', {
-      name: 'default',
+      name: 'Default',
       importance: Notifications.AndroidImportance.MAX,
     });
     await Notifications.setNotificationChannelAsync('drill', {
@@ -53,13 +92,23 @@ export async function registerForPushNotifications(uid?: string): Promise<string
     });
   }
 
+  const projectId = getEasProjectId();
+  if (!projectId) {
+    console.warn('[App-da push]', getPushSetupHint());
+    await savePushStatus('missing-project-id', getPushSetupHint());
+    return null;
+  }
+
   try {
-    const token = (await Notifications.getExpoPushTokenAsync()).data;
+    const token = (await Notifications.getExpoPushTokenAsync({ projectId })).data;
     if (uid && token) {
-      await updateUserProfile(uid, { fcmToken: token });
+      await updateUserProfile(uid, { expoPushToken: token, fcmToken: token });
     }
+    await savePushStatus('registered', token);
     return token;
-  } catch {
+  } catch (err) {
+    console.warn('[App-da push] token registration failed', err);
+    await savePushStatus('token-error', err instanceof Error ? err.message : String(err));
     return null;
   }
 }
@@ -69,13 +118,12 @@ export async function subscribeToTopics(
   district: string,
   uid?: string
 ): Promise<void> {
-  const topics = [`school_${schoolCode}`, `region_${district.replace(/\s+/g, '_')}`];
+  const topics = [`school_${schoolCode.toUpperCase()}`, `region_${district.replace(/\s+/g, '_')}`];
   await AsyncStorage.setItem(TOPICS_KEY, JSON.stringify(topics));
-  if (uid && isFirebaseConfigured && isPushAvailable()) {
-    await updateUserProfile(uid, { fcmToken: (await registerForPushNotifications()) ?? undefined });
-  }
+  if (!uid || !isFirebaseConfigured) return;
 }
 
+/** Local notification on the device that triggered the action (admin preview). */
 export async function notifyDrillStart(params: {
   disasterType: string;
   schoolCode: string;
@@ -101,7 +149,7 @@ export async function notifyDrillStart(params: {
       trigger: null,
     });
   } catch {
-    /* Expo Go may block local notifications on some SDK versions */
+    /* ignore */
   }
 }
 

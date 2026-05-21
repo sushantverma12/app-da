@@ -14,6 +14,15 @@ export function parseCheckInUrl(url: string): string | null {
   return null;
 }
 
+/** Parse school code from QR payload (deep link or plain code). */
+export function parseSchoolFromQrData(data: string): string | null {
+  const trimmed = data.trim();
+  const fromUrl = parseCheckInUrl(trimmed);
+  if (fromUrl) return fromUrl;
+  if (/^[A-Z0-9]{4,8}$/i.test(trimmed)) return trimmed.toUpperCase();
+  return null;
+}
+
 export async function handleCheckInDeepLink(url: string): Promise<{
   success: boolean;
   message: string;

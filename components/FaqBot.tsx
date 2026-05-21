@@ -10,7 +10,12 @@ interface ChatLine {
   text: string;
 }
 
-export function FaqBot() {
+interface FaqBotProps {
+  /** When true, fills modal sheet (no page divider / min-height). */
+  inModal?: boolean;
+}
+
+export function FaqBot({ inModal = false }: FaqBotProps) {
   const [query, setQuery] = useState('');
   const [lines, setLines] = useState<ChatLine[]>([
     {
@@ -38,12 +43,17 @@ export function FaqBot() {
   const starters = getAllFaq().slice(0, 4);
 
   return (
-    <View style={styles.wrap} testID="faq-bot">
-      <View style={styles.header}>
-        <Feather name="help-circle" size={18} color={Colors.primaryBlue} />
-        <Text style={styles.headerTitle}>FAQ bot (offline)</Text>
-      </View>
-      <ScrollView style={styles.thread} contentContainerStyle={styles.threadContent}>
+    <View style={[styles.wrap, inModal && styles.wrapModal]} testID="faq-bot">
+      {!inModal ? (
+        <View style={styles.header}>
+          <Feather name="help-circle" size={18} color={Colors.primaryBlue} />
+          <Text style={styles.headerTitle}>FAQ bot (offline)</Text>
+        </View>
+      ) : null}
+      <ScrollView
+        style={[styles.thread, inModal && styles.threadModal]}
+        contentContainerStyle={styles.threadContent}
+      >
         {lines.map((line) => (
           <View
             key={line.id}
@@ -89,9 +99,16 @@ const styles = StyleSheet.create({
     flex: 1,
     minHeight: 280,
   },
+  wrapModal: {
+    marginTop: 0,
+    borderTopWidth: 0,
+    paddingTop: 0,
+    minHeight: 0,
+  },
   header: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 },
   headerTitle: { fontSize: 16, fontWeight: '700', color: Colors.textPrimary },
   thread: { maxHeight: 200, marginBottom: 8 },
+  threadModal: { flex: 1, maxHeight: undefined, marginBottom: 8 },
   threadContent: { gap: 8, paddingBottom: 8 },
   bubble: {
     maxWidth: '90%',

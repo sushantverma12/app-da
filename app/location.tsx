@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { View, Text, TextInput, Pressable, StyleSheet, ActivityIndicator, Alert } from 'react-native';
 import { useRouter, Stack } from 'expo-router';
 import Feather from '@expo/vector-icons/Feather';
@@ -15,10 +15,13 @@ export default function LocationScreen() {
   const [city, setCity] = useState(location?.city ?? '');
   const [state, setState] = useState(location?.state ?? 'Bihar');
   const [loading, setLoading] = useState(false);
+  const [autoTried, setAutoTried] = useState(false);
+  const [status, setStatus] = useState(location ? 'Using your saved location.' : 'Requesting location permission...');
+  const hasAutoRequested = useRef(false);
 
-  const detectLocation = async () => {
-    console.log('=> Detect Location button tapped!');
+  const detectLocation = async (showAlert = false) => {
     setLoading(true);
+    setStatus('Requesting location permission...');
     try {
       const { granted, location: detectedLoc } = await requestAndResolveLocation();
       if (granted && detectedLoc) {
@@ -26,17 +29,31 @@ export default function LocationScreen() {
         setState(detectedLoc.state);
         setLocation(detectedLoc);
         await fetchDisasters();
+        setStatus(`Detected ${detectedLoc.city}, ${detectedLoc.state}.`);
         router.back();
       } else {
-        Alert.alert('Permission Denied', 'Could not get your location. Please ensure location services are enabled in your browser/device.');
+        setStatus('Location permission was not granted. Enter your city manually or try again.');
+        if (showAlert) {
+          Alert.alert('Permission needed', 'Please allow location access or enter your city manually.');
+        }
       }
     } catch (error: any) {
       console.error('Location detection error:', error);
-      Alert.alert('Error', error?.message || 'Failed to detect location. This feature might not be fully supported on the Web browser. Please enter manually.');
+      setStatus('Could not detect your city automatically. Enter it manually or try again.');
+      if (showAlert) {
+        Alert.alert('Location unavailable', error?.message || 'Please enter your city manually.');
+      }
     } finally {
+      setAutoTried(true);
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (location || hasAutoRequested.current) return;
+    hasAutoRequested.current = true;
+    void detectLocation(false);
+  }, [location]);
 
   const save = async () => {
     console.log('=> Save button tapped!');
@@ -58,30 +75,39 @@ export default function LocationScreen() {
   return (
     <ScreenShell testID="location-screen">
       <Stack.Screen options={{ title: 'Your location', headerShown: true }} />
-      <Text style={styles.title}>Update your city</Text>
-      <Text style={styles.sub}>Disaster risks are sorted for your region.</Text>
+      <Text style={styles.title}>Set your location</Text>
+      <Text style={styles.sub}>The app asks once and uses your city to sort nearby disaster risks.</Text>
 
       <View style={styles.currentLocBox}>
-        <Feather name="map-pin" size={16} color={Colors.primaryBlue} />
+        {loading ? (
+          <ActivityIndicator color={Colors.primaryBlue} />
+        ) : (
+          <Feather name="map-pin" size={16} color={Colors.primaryBlue} />
+        )}
         <Text style={styles.currentLocText}>
-          <Text style={{fontWeight: '700'}}>Current:</Text> {location ? `${location.city}, ${location.state}` : 'Not set'}
+          <Text style={{fontWeight: '700'}}>Status:</Text> {status}
         </Text>
       </View>
 
-      <Pressable testID="location-detect" style={styles.detectBtn} onPress={detectLocation} disabled={loading}>
+      <Pressable
+        testID="location-detect"
+        style={styles.detectBtn}
+        onPress={() => detectLocation(true)}
+        disabled={loading}
+      >
         {loading ? (
           <ActivityIndicator color={Colors.primaryBlue} />
         ) : (
           <>
             <Feather name="navigation" size={18} color={Colors.primaryBlue} />
-            <Text style={styles.detectBtnText}>Use Current Location</Text>
+            <Text style={styles.detectBtnText}>{autoTried ? 'Try current location again' : 'Use current location'}</Text>
           </>
         )}
       </Pressable>
 
       <View style={styles.divider}>
         <View style={styles.line} />
-        <Text style={styles.dividerText}>OR ENTER MANUALLY</Text>
+        <Text style={styles.dividerText}>MANUAL FALLBACK</Text>
         <View style={styles.line} />
       </View>
 

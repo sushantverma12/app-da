@@ -111,7 +111,16 @@ async function main() {
     warn('Verification had warnings');
   }
 
+  step('Deploy Cloud Functions (push notifications)');
+  try {
+    execSync('npm run functions:deploy', { cwd: root, stdio: 'inherit' });
+    ok('Cloud Functions deployed (drill + alert push)');
+  } catch {
+    warn('Functions deploy skipped — needs Firebase Blaze plan: npm run functions:deploy');
+  }
+
   console.log('\nDone. Start the app with Firebase:\n  npm run start:clear\n');
+  console.log('For remote push: npm run eas:init && npm run eas:build:android\n');
 }
 
 main();

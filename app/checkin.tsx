@@ -20,13 +20,7 @@ export default function CheckInScreen() {
     const url = `appda://checkin?school=${code}`;
     handleCheckInDeepLink(url).then((result) => {
       setStatus(result.message);
-      setTimeout(() => {
-        if (result.success && result.drillId) {
-          router.replace('/drill/student');
-        } else {
-          router.replace('/home');
-        }
-      }, 1200);
+      setTimeout(() => router.replace('/home'), 1200);
     });
   }, [school, router]);
 

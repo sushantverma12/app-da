@@ -1,5 +1,10 @@
 import { Disaster, Quiz, Resource } from '@/types';
 import { defaultVideoUrl } from '@/constants/disasterVideos';
+import {
+  DISASTER_CHECKLISTS,
+  DISASTER_CONTENT,
+  DISASTER_QUIZ_QUESTIONS,
+} from '@/constants/disasterEducationContent';
 
 export const DISASTER_META: { id: string; title: string; icon: string; description: string }[] = [
   { id: 'flood', title: 'Flood', icon: '🌊', description: 'Riverine, flash, and coastal flooding' },
@@ -38,29 +43,9 @@ function makeDisaster(
     description,
     riskByRegion,
     icon,
-    contentSections: {
-      whatIsIt: `${title} is a significant natural hazard in India. Understanding early warning signs and safe responses saves lives.`,
-      howToPrepare: [
-        'Keep an emergency kit ready',
-        'Save local emergency numbers',
-        'Know your assembly point',
-        'Discuss a family meeting plan',
-      ],
-      duringSteps: [
-        'Follow official alerts immediately',
-        'Move to the safest area in your building',
-        'Help others without putting yourself at risk',
-        'Reach the assembly point when directed',
-      ],
-      afterSteps: [
-        'Wait for all-clear from authorities',
-        'Check for injuries and report missing persons',
-        'Avoid damaged structures',
-        'Use only safe drinking water',
-      ],
-    },
+    contentSections: DISASTER_CONTENT[id],
     videoUrl: defaultVideoUrl(id),
-    checklistItems: ['Emergency kit ready', 'Contacts saved', 'Assembly point known', 'Documents secured'],
+    checklistItems: DISASTER_CHECKLISTS[id],
     quizId: `${id}_quiz`,
   };
 }
@@ -75,38 +60,7 @@ export const LOCAL_QUIZZES: Record<string, Quiz> = Object.fromEntries(
     {
       id: `${d.id}_quiz`,
       disasterId: d.id,
-      questions: [
-        {
-          question: `${d.title} alert ke time sabse pehle kya karna chahiye?`,
-          options: ['Panic karo', 'Official instructions follow karo', 'Lift use karo', 'Ignore karo'],
-          correctIndex: 1,
-          explanation: 'Hamesha official alerts aur school admin ke instructions follow karo.',
-        },
-        {
-          question: 'Assembly point kyun important hai?',
-          options: ['Photo ke liye', 'Sabko ek jagah count karne ke liye', 'Koi reason nahi', 'Sirf admin ke liye'],
-          correctIndex: 1,
-          explanation: 'Assembly point par sabko count kiya ja sakta hai drill ya emergency mein.',
-        },
-        {
-          question: 'Emergency numbers mein ambulance ka number kya hai?',
-          options: ['100', '101', '108', '1078'],
-          correctIndex: 2,
-          explanation: 'Ambulance: 108. Police: 100, Fire: 101, NDMA: 1078.',
-        },
-        {
-          question: 'Drill ke dauran QR scan kyun karte hain?',
-          options: ['Games ke liye', 'Check-in confirm karne ke liye', 'Internet test', 'Optional hai'],
-          correctIndex: 1,
-          explanation: 'QR scan se admin ko pata chalta hai kitne log safe assembly point par pahunche.',
-        },
-        {
-          question: 'Mock drill real emergency se kaise alag hoti hai?',
-          options: ['Koi farak nahi', 'Drill practice hai — instructions follow karo', 'Ignore karo', 'Sirf teachers ke liye'],
-          correctIndex: 1,
-          explanation: 'Mock drill practice hoti hai taaki real emergency mein sab taiyar rahein.',
-        },
-      ],
+      questions: DISASTER_QUIZ_QUESTIONS[d.id],
     },
   ])
 );
@@ -132,6 +86,14 @@ export const LOCAL_RESOURCES: Resource[] = [
   { id: 'patna_17', name: 'Eco Park Shelter', type: 'shelter', lat: 25.635, lng: 85.105, district: 'Patna', state: 'Bihar', phone: '' },
   { id: 'patna_18', name: 'SP Office Patna', type: 'police', lat: 25.615, lng: 85.125, district: 'Patna', state: 'Bihar', phone: '100' },
   { id: 'patna_19', name: 'Nalanda Medical College', type: 'hospital', lat: 25.585, lng: 85.165, district: 'Patna', state: 'Bihar', phone: '0612-2357600' },
+  { id: 'kolkata_0', name: 'SSKM Hospital', type: 'hospital', lat: 22.5397, lng: 88.3411, district: 'Presidency Division', state: 'West Bengal', phone: '033-22041100' },
+  { id: 'kolkata_1', name: 'Medical College Kolkata', type: 'hospital', lat: 22.5726, lng: 88.3639, district: 'Presidency Division', state: 'West Bengal', phone: '033-22414901' },
+  { id: 'kolkata_2', name: 'NRS Medical College', type: 'hospital', lat: 22.5645, lng: 88.3702, district: 'Presidency Division', state: 'West Bengal', phone: '033-22653215' },
+  { id: 'kolkata_3', name: 'Kolkata Police HQ', type: 'police', lat: 22.5721, lng: 88.3578, district: 'Presidency Division', state: 'West Bengal', phone: '100' },
+  { id: 'kolkata_4', name: 'Kolkata Fire Brigade HQ', type: 'fire_station', lat: 22.5547, lng: 88.3548, district: 'Presidency Division', state: 'West Bengal', phone: '101' },
+  { id: 'kolkata_5', name: 'Netaji Indoor Stadium Relief Point', type: 'shelter', lat: 22.5684, lng: 88.3426, district: 'Presidency Division', state: 'West Bengal', phone: '' },
+  { id: 'kolkata_6', name: 'Salt Lake Stadium Relief Point', type: 'shelter', lat: 22.5692, lng: 88.4096, district: 'Presidency Division', state: 'West Bengal', phone: '' },
+  { id: 'kolkata_7', name: 'Howrah District Hospital', type: 'hospital', lat: 22.5877, lng: 88.3104, district: 'Presidency Division', state: 'West Bengal', phone: '033-26374480' },
 ];
 
 export function getRiskForRegion(
@@ -140,9 +102,50 @@ export function getRiskForRegion(
   state: string
 ): 'high' | 'medium' | 'low' {
   const r = disaster.riskByRegion;
-  return r[district] ?? r[state] ?? 'low';
+  const baseRisk = r[district] ?? r[state] ?? 'low';
+  return applySeasonalRisk(disaster.id, baseRisk);
 }
 
 export function riskSortOrder(risk: 'high' | 'medium' | 'low'): number {
   return { high: 1, medium: 2, low: 3 }[risk];
+}
+
+function applySeasonalRisk(
+  disasterId: string,
+  baseRisk: 'high' | 'medium' | 'low',
+  date = new Date()
+): 'high' | 'medium' | 'low' {
+  const month = date.getMonth() + 1;
+  const baseScore = { low: 1, medium: 2, high: 3 }[baseRisk];
+  const adjustedScore = baseScore + seasonalModifier(disasterId, month);
+
+  if (adjustedScore >= 3) return 'high';
+  if (adjustedScore <= 1) return 'low';
+  return 'medium';
+}
+
+function seasonalModifier(disasterId: string, month: number): -1 | 0 | 1 {
+  const inMonths = (...months: number[]) => months.includes(month);
+
+  switch (disasterId) {
+    case 'coldwave':
+      return inMonths(12, 1, 2) ? 1 : inMonths(4, 5, 6, 7, 8, 9) ? -1 : 0;
+    case 'heatwave':
+      return inMonths(3, 4, 5, 6) ? 1 : inMonths(11, 12, 1, 2) ? -1 : 0;
+    case 'flood':
+    case 'landslide':
+      return inMonths(6, 7, 8, 9) ? 1 : inMonths(12, 1, 2, 3) ? -1 : 0;
+    case 'lightning':
+      return inMonths(4, 5, 6, 7, 8, 9) ? 1 : inMonths(11, 12, 1, 2) ? -1 : 0;
+    case 'cyclone':
+      return inMonths(4, 5, 6, 10, 11, 12) ? 1 : inMonths(1, 2, 8) ? -1 : 0;
+    case 'drought':
+      return inMonths(3, 4, 5, 6) ? 1 : inMonths(7, 8, 9) ? -1 : 0;
+    case 'wildfire':
+      return inMonths(2, 3, 4, 5, 6) ? 1 : inMonths(7, 8, 9) ? -1 : 0;
+    case 'epidemic':
+      return inMonths(7, 8, 9, 10) ? 1 : 0;
+    default:
+      return 0;
+  }
 }

@@ -5,13 +5,27 @@ import { Colors, radius } from '@/constants/theme';
 interface Props {
   resources: Resource[];
   district: string;
+  center?: { lat: number; lng: number } | null;
 }
 
-/** List + Google Maps links (works in Expo Go; embedded map needs a dev build). */
-export function ResourceMap({ resources, district }: Props) {
+export function ResourceMap({ resources, district, center }: Props) {
+  const mapQuery = center ? `${center.lat},${center.lng}` : district;
+
   return (
     <View style={styles.wrap} testID="resource-map">
-      <Text style={styles.note}>Nearby resources for {district} — tap to open in Maps:</Text>
+      <Pressable
+        style={styles.mapFallback}
+        onPress={() =>
+          Linking.openURL(
+            `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mapQuery)}`
+          )
+        }
+      >
+        <Text style={styles.mapTitle}>Nearby emergency resources</Text>
+        <Text style={styles.mapSub}>Tap the map area or any resource to open directions in Google Maps.</Text>
+      </Pressable>
+
+      <Text style={styles.note}>Resources for {district}</Text>
       {resources.length === 0 ? (
         <Text style={styles.empty}>No resources found for {district}.</Text>
       ) : (
@@ -42,6 +56,18 @@ export function ResourceMap({ resources, district }: Props) {
 
 const styles = StyleSheet.create({
   wrap: { gap: 8 },
+  mapFallback: {
+    minHeight: 150,
+    borderRadius: radius.card,
+    borderWidth: 1,
+    borderColor: Colors.cardBorder,
+    backgroundColor: '#E8F0FE',
+    justifyContent: 'center',
+    padding: 18,
+    marginBottom: 12,
+  },
+  mapTitle: { fontSize: 18, fontWeight: '800', color: Colors.textPrimary },
+  mapSub: { fontSize: 14, lineHeight: 20, color: Colors.textSecondary, marginTop: 6 },
   note: { fontSize: 13, color: Colors.textSecondary, marginBottom: 8 },
   empty: { color: Colors.textSecondary },
   card: {

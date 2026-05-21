@@ -153,7 +153,8 @@ async function seed() {
   }
 
   for (let i = 0; i < resources.length; i++) {
-    await db.collection('resources').doc(`patna_${i}`).set(resources[i], { merge: true });
+    const { id = `resource_${i}`, ...data } = resources[i];
+    await db.collection('resources').doc(id).set(data, { merge: true });
   }
 
   const channel = db.collection('messages').doc(SCHOOL_CODE).collection('channel');
@@ -177,6 +178,7 @@ async function seed() {
       await channel.add({
         ...msg,
         timestamp: admin.firestore.FieldValue.serverTimestamp(),
+        expiresAt: admin.firestore.Timestamp.fromDate(new Date(Date.now() + 24 * 60 * 60 * 1000)),
       });
     }
   }

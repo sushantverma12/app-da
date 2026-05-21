@@ -1,6 +1,10 @@
+import { Platform } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { initializeApp, getApps, FirebaseApp } from 'firebase/app';
 import {
   getAuth,
+  initializeAuth,
+  getReactNativePersistence,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signOut,
@@ -17,6 +21,7 @@ import {
   where,
   getDocs,
   addDoc,
+  deleteDoc,
   onSnapshot,
   serverTimestamp,
   Firestore,
@@ -44,9 +49,22 @@ let app: FirebaseApp | undefined;
 let auth: Auth | undefined;
 let db: Firestore | undefined;
 
+function initAuth(firebaseApp: FirebaseApp): Auth {
+  if (Platform.OS === 'web') return getAuth(firebaseApp);
+  try {
+    return initializeAuth(firebaseApp, {
+      persistence: getReactNativePersistence(AsyncStorage),
+    });
+  } catch (e: unknown) {
+    const code = (e as { code?: string })?.code;
+    if (code === 'auth/already-initialized') return getAuth(firebaseApp);
+    throw e;
+  }
+}
+
 if (isFirebaseConfigured && !getApps().length) {
   app = initializeApp(firebaseConfig);
-  auth = getAuth(app);
+  auth = initAuth(app);
   db = getFirestore(app);
 } else if (getApps().length) {
   app = getApps()[0];
@@ -296,6 +314,11 @@ export async function sendEmergencyAlert(alert: Omit<EmergencyAlert, 'id' | 'sen
   });
 }
 
+export async function deleteAlert(alertId: string): Promise<void> {
+  if (!db) throw new Error('Firebase not configured');
+  await deleteDoc(doc(db, 'alerts', alertId));
+}
+
 export async function fetchAlerts(schoolCode: string) {
   if (!db) return [];
   const q = query(
@@ -305,11 +328,18 @@ export async function fetchAlerts(schoolCode: string) {
     limit(50)
   );
   const snap = await getDocs(q);
-  return snap.docs.map((d) => ({
-    id: d.id,
-    ...d.data(),
-    sentAt: (d.data().sentAt as Timestamp)?.toDate?.() ?? new Date(),
-  }));
+  return snap.docs.map((d) => mapAlertDoc(d.id, d.data()));
+}
+
+function mapAlertDoc(id: string, data: Record<string, unknown>): EmergencyAlert {
+  return {
+    id,
+    schoolCode: String(data.schoolCode ?? ''),
+    type: data.type as EmergencyAlert['type'],
+    message: String(data.message ?? ''),
+    sentBy: String(data.sentBy ?? ''),
+    sentAt: (data.sentAt as Timestamp)?.toDate?.() ?? new Date(),
+  };
 }
 
 export function subscribeAlerts(
@@ -324,30 +354,33 @@ export function subscribeAlerts(
     limit(50)
   );
   return onSnapshot(q, (snap) => {
-    cb(
-      snap.docs.map((d) => ({
-        id: d.id,
-        ...d.data(),
-        sentAt: (d.data().sentAt as Timestamp)?.toDate?.() ?? new Date(),
-      })) as EmergencyAlert[]
-    );
+    cb(snap.docs.map((d) => mapAlertDoc(d.id, d.data())));
   });
 }
 
 export function subscribeMessages(schoolCode: string, cb: (messages: ChannelMessage[]) => void) {
   if (!db) return () => {};
+  const messageTtlMs = 24 * 60 * 60 * 1000;
   const q = query(
     collection(db, 'messages', schoolCode, 'channel'),
-    orderBy('timestamp', 'desc'),
+    orderBy('timestamp', 'asc'),
     limit(50)
   );
   return onSnapshot(q, (snap) => {
+    const now = new Date();
     cb(
       snap.docs.map((d) => ({
         id: d.id,
         ...d.data(),
         timestamp: (d.data().timestamp as Timestamp)?.toDate?.() ?? new Date(),
-      })) as ChannelMessage[]
+        expiresAt: (d.data().expiresAt as Timestamp)?.toDate?.(),
+      }))
+      .filter((message) => {
+        const expiry = message.expiresAt
+          ? message.expiresAt.getTime()
+          : message.timestamp.getTime() + messageTtlMs;
+        return expiry > now.getTime();
+      }) as ChannelMessage[]
     );
   });
 }
@@ -357,8 +390,10 @@ export async function sendChannelMessage(
   msg: Omit<ChannelMessage, 'id' | 'timestamp'>
 ) {
   if (!db) return;
+  const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
   await addDoc(collection(db, 'messages', schoolCode, 'channel'), {
     ...msg,
     timestamp: serverTimestamp(),
+    expiresAt: Timestamp.fromDate(expiresAt),
   });
 }

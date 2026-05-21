@@ -7,18 +7,19 @@ try {
 
 export default {
   expo: {
+    owner: 'sushant_null',
     name: 'App-da',
     slug: 'app-da',
     version: '1.0.0',
     orientation: 'portrait',
     icon: './assets/images/icon.png',
     scheme: 'appda',
-    userInterfaceStyle: 'automatic',
+    userInterfaceStyle: 'light',
     newArchEnabled: true,
     splash: {
       image: './assets/images/splash-icon.png',
       resizeMode: 'contain',
-      backgroundColor: '#1A73E8',
+      backgroundColor: '#F8F9FA',
     },
     ios: {
       supportsTablet: true,
@@ -26,15 +27,22 @@ export default {
       infoPlist: {
         NSLocationWhenInUseUsageDescription:
           'App-da uses your location to show region-specific disaster risks.',
+        NSCameraUsageDescription:
+          'App-da uses the camera to scan assembly QR codes for drill check-in and ending drills.',
       },
     },
     android: {
       adaptiveIcon: {
         foregroundImage: './assets/images/adaptive-icon.png',
-        backgroundColor: '#1A73E8',
+        backgroundColor: '#F8F9FA',
       },
       package: 'com.appda.mobile',
-      permissions: ['ACCESS_FINE_LOCATION', 'ACCESS_COARSE_LOCATION'],
+      permissions: [
+        'ACCESS_FINE_LOCATION',
+        'ACCESS_COARSE_LOCATION',
+        'CAMERA',
+        'POST_NOTIFICATIONS',
+      ],
     },
     web: { bundler: 'metro', output: 'static', favicon: './assets/images/favicon.png' },
     linking: {
@@ -52,7 +60,7 @@ export default {
       'expo-router',
       [
         'expo-notifications',
-        { icon: './assets/images/icon.png', color: '#1A73E8' },
+        { icon: './assets/images/notification-icon.png', color: '#D93025' },
       ],
       [
         'expo-location',
@@ -61,9 +69,19 @@ export default {
             'App-da uses your location to show region-specific disaster risks.',
         },
       ],
+      [
+        'expo-camera',
+        {
+          cameraPermission:
+            'App-da uses the camera to scan assembly QR codes for drill check-in and ending drills.',
+        },
+      ],
     ],
     experiments: { typedRoutes: true },
     extra: {
+      eas: {
+        projectId: '7ae47546-8975-4dc5-adb2-b82352128f04',
+      },
       firebaseApiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY ?? '',
       firebaseAuthDomain: process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN ?? '',
       firebaseProjectId: process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID ?? '',

@@ -78,6 +78,43 @@ npm run db:verify       # check collections
 
 When `.env` is set, Home shows **● Firebase connected** and loads content from Firestore.
 
+## Push notifications (EAS + Cloud Functions)
+
+Remote push to all students in a school when an admin **starts a drill** or **sends an alert**.
+
+| Layer | What |
+|-------|------|
+| **Client** | EAS build stores `expoPushToken` on `/users/{uid}` at login |
+| **Backend** | Cloud Functions (`functions/`) send via **Expo Push API** |
+| **Expo Go** | No remote push — use home drill banner (4s poll) instead |
+
+### Setup (once)
+
+```bash
+# 1. EAS project ID (for push tokens)
+npm run eas:init
+# → copy project ID into .env as EXPO_PUBLIC_EAS_PROJECT_ID=
+
+# 2. Deploy Cloud Functions (Firebase Blaze plan required)
+npm run functions:deploy
+
+# 3. Build installable app
+eas login
+npm run eas:build:android    # preview APK for testing
+```
+
+**Android FCM:** Expo dashboard → your project → **Credentials** → upload **FCM V1 service account JSON** from Firebase Console → Project settings → Cloud Messaging.
+
+**iOS:** Configure APNs key in EAS credentials (Expo docs).
+
+### Deploy everything
+
+```bash
+npm run backend:deploy   # Firestore rules + Cloud Functions
+```
+
+See [docs/E2E_TEST.md](docs/E2E_TEST.md) for the full push test checklist.
+
 ## Features
 
 - Guest browsing: 10 disaster modules, checklists, quiz, resource map

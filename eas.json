@@ -1,0 +1,44 @@
+{
+  "cli": {
+    "version": ">= 13.2.0",
+    "appVersionSource": "remote"
+  },
+  "build": {
+    "development": {
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      },
+      "env": {
+        "APP_VARIANT": "development"
+      }
+    },
+    "preview": {
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      },
+      "ios": {
+        "simulator": false
+      },
+      "env": {
+        "APP_VARIANT": "preview",
+        "EXPO_PUBLIC_FIREBASE_API_KEY": "AIzaSyAkmJTwc2wcsHg_N2gAVWD9OqjNPi_4mdA",
+        "EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN": "app-da-ee9cb.firebaseapp.com",
+        "EXPO_PUBLIC_FIREBASE_PROJECT_ID": "app-da-ee9cb",
+        "EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET": "app-da-ee9cb.firebasestorage.app",
+        "EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID": "830764255157",
+        "EXPO_PUBLIC_FIREBASE_APP_ID": "1:830764255157:web:1dac85cc8628c3073cbbfc"
+      }
+    },
+    "production": {
+      "autoIncrement": true,
+      "env": {
+        "APP_VARIANT": "production"
+      }
+    }
+  },
+  "submit": {
+    "production": {}
+  }
+}

@@ -14,6 +14,8 @@ export interface AppUser {
   district: string;
   state: string;
   fcmToken?: string;
+  /** Expo push token from EAS build — used by Cloud Functions for remote push */
+  expoPushToken?: string;
   badgesEarned: string[];
   quizScores: Record<string, number>;
   completedModules: string[];
@@ -93,6 +95,8 @@ export interface LocationInfo {
   city: string;
   district: string;
   state: string;
+  lat?: number;
+  lng?: number;
 }
 
 export interface ChannelMessage {
@@ -102,6 +106,7 @@ export interface ChannelMessage {
   senderRole: UserRole;
   text: string;
   timestamp: Date;
+  expiresAt?: Date;
 }
 
 export interface EmergencyAlert {

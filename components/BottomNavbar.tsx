@@ -1,7 +1,6 @@
 import { View, Pressable, StyleSheet } from 'react-native';
 import { useRouter, usePathname } from 'expo-router';
 import Feather from '@expo/vector-icons/Feather';
-import { useColorScheme } from '@/components/useColorScheme';
 import { Colors } from '@/constants/theme';
 
 /** Home covers learning — disaster modules open from home, not a separate tab. */
@@ -15,12 +14,10 @@ const tabs = [
 export function BottomNavbar() {
   const router = useRouter();
   const pathname = usePathname();
-  const scheme = useColorScheme();
-  const isDark = scheme === 'dark';
 
   return (
     <View
-      style={[styles.bar, { backgroundColor: isDark ? '#1E1E1E' : Colors.white, borderTopColor: Colors.cardBorder }]}
+      style={styles.bar}
       testID="bottom-navbar"
     >
       {tabs.map((tab) => {
@@ -50,6 +47,8 @@ const styles = StyleSheet.create({
   bar: {
     flexDirection: 'row',
     borderTopWidth: 1,
+    borderTopColor: Colors.cardBorder,
+    backgroundColor: Colors.white,
     paddingBottom: 10,
     paddingTop: 8,
     paddingHorizontal: 16,

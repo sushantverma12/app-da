@@ -36,11 +36,17 @@ export function DisasterVideoLesson({ disasterId, firestoreVideoUrl }: Props) {
     );
   }
 
-  const thumb = `https://img.youtube.com/vi/${lesson.youtubeId}/hqdefault.jpg`;
-  const embed = youtubeEmbedUrl(lesson.youtubeId);
+  const thumb =
+    lesson.kind === 'youtube' && lesson.youtubeId
+      ? `https://img.youtube.com/vi/${lesson.youtubeId}/hqdefault.jpg`
+      : null;
+  const playerUrl =
+    lesson.kind === 'youtube' && lesson.youtubeId ? youtubeEmbedUrl(lesson.youtubeId) : lesson.url;
 
   const openExternal = () => {
-    void WebBrowser.openBrowserAsync(youtubeWatchUrl(lesson.youtubeId));
+    const url =
+      lesson.kind === 'youtube' && lesson.youtubeId ? youtubeWatchUrl(lesson.youtubeId) : lesson.url;
+    void WebBrowser.openBrowserAsync(url);
   };
 
   return (
@@ -53,10 +59,18 @@ export function DisasterVideoLesson({ disasterId, firestoreVideoUrl }: Props) {
 
       {Platform.OS === 'web' ? (
         <Pressable onPress={openExternal} style={styles.thumbWrap}>
-          <Image source={{ uri: thumb }} style={styles.thumb} resizeMode="cover" />
+          {thumb ? (
+            <Image source={{ uri: thumb }} style={styles.thumb} resizeMode="cover" />
+          ) : (
+            <View style={styles.directVideoPreview}>
+              <Feather name="video" size={42} color={Colors.white} />
+            </View>
+          )}
           <View style={styles.playOverlay}>
             <Feather name="play-circle" size={48} color={Colors.white} />
-            <Text style={styles.playText}>Watch on YouTube</Text>
+            <Text style={styles.playText}>
+              {lesson.kind === 'youtube' ? 'Watch on YouTube' : 'Play video'}
+            </Text>
           </View>
         </Pressable>
       ) : (
@@ -65,7 +79,11 @@ export function DisasterVideoLesson({ disasterId, firestoreVideoUrl }: Props) {
             <ActivityIndicator style={styles.loader} color={Colors.primaryBlue} />
           ) : null}
           <WebView
-            source={{ uri: embed }}
+            source={
+              lesson.kind === 'direct'
+                ? { html: directVideoHtml(playerUrl) }
+                : { uri: playerUrl }
+            }
             style={styles.webview}
             allowsFullscreenVideo
             mediaPlaybackRequiresUserAction={false}
@@ -76,21 +94,58 @@ export function DisasterVideoLesson({ disasterId, firestoreVideoUrl }: Props) {
 
       <Pressable testID="open-video-external" style={styles.linkBtn} onPress={openExternal}>
         <Feather name="external-link" size={16} color={Colors.primaryBlue} />
-        <Text style={styles.linkText}>Open in YouTube</Text>
+        <Text style={styles.linkText}>
+          {lesson.kind === 'youtube' ? 'Open in YouTube' : 'Open video'}
+        </Text>
       </Pressable>
     </View>
   );
 }
 
+function directVideoHtml(url: string): string {
+  return `
+    <!doctype html>
+    <html>
+      <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <style>
+          html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+          }
+          video {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            background: #000;
+          }
+        </style>
+      </head>
+      <body>
+        <video controls playsinline preload="metadata" src="${url}"></video>
+      </body>
+    </html>
+  `;
+}
+
 const styles = StyleSheet.create({
   card: {
-    marginTop: 20,
     backgroundColor: Colors.white,
     borderRadius: radius.card,
     borderWidth: 1,
     borderColor: Colors.cardBorder,
     padding: 16,
     gap: 8,
+  },
+  directVideoPreview: {
+    width: '100%',
+    aspectRatio: 16 / 9,
+    backgroundColor: Colors.textPrimary,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   h2: { fontSize: 17, fontWeight: '700', color: Colors.textPrimary },
   meta: { fontSize: 12, color: Colors.textSecondary },

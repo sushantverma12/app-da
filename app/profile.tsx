@@ -16,7 +16,7 @@ export default function ProfileScreen() {
       <ScreenShell testID="profile-guest" scroll={false}>
         <Stack.Screen options={{ headerShown: false }} />
         <ScrollView contentContainerStyle={styles.guestScroll} showsVerticalScrollIndicator={false}>
-          <AppLogo size={88} />
+          <AppLogo size={128} />
           <Text style={styles.joinTitle}>Join App-da</Text>
           <Text style={styles.joinSub}>
             Create an account to track progress, earn badges, and join your school&apos;s drills.

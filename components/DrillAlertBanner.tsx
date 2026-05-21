@@ -1,5 +1,4 @@
-import { useEffect, useRef } from 'react';
-import { View, Text, Pressable, StyleSheet, Alert } from 'react-native';
+import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import Feather from '@expo/vector-icons/Feather';
 import { Drill } from '@/types';
@@ -14,24 +13,9 @@ interface Props {
 export function DrillAlertBanner({ drill }: Props) {
   const router = useRouter();
   const user = useAuthStore((s) => s.user);
-  const alertedRef = useRef<string | null>(null);
 
   const meta = DISASTER_META.find((d) => d.id === drill.disasterType);
   const title = meta?.title ?? drill.disasterType;
-
-  useEffect(() => {
-    if (!user || user.role !== 'student') return;
-    if (alertedRef.current === drill.id) return;
-    alertedRef.current = drill.id;
-    Alert.alert(
-      `${title} drill started`,
-      'Reach the assembly point and scan the school QR to check in.',
-      [
-        { text: 'Later', style: 'cancel' },
-        { text: 'Join drill', onPress: () => router.push('/drill/student') },
-      ]
-    );
-  }, [drill.id, title, user, router]);
 
   if (!user) return null;
 
