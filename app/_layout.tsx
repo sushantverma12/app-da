@@ -68,6 +68,8 @@ export default function RootLayout() {
         <Stack.Screen name="quiz/[id]" />
         <Stack.Screen name="alerts" />
         <Stack.Screen name="chat" />
+        <Stack.Screen name="first-aid" />
+        <Stack.Screen name="emergency" />
         <Stack.Screen name="login" />
         <Stack.Screen name="register" />
         <Stack.Screen name="profile" />

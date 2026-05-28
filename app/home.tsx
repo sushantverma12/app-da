@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { View, Text, Pressable, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, Pressable, StyleSheet, ActivityIndicator, Platform, Image } from 'react-native';
 import { useRouter } from 'expo-router';
 import Feather from '@expo/vector-icons/Feather';
 import { ScreenShell } from '@/components/ScreenShell';
@@ -11,6 +11,14 @@ import { DrillAlertBanner } from '@/components/DrillAlertBanner';
 import { useActiveSchoolDrill } from '@/hooks/useActiveSchoolDrill';
 import { getRiskForRegion, riskSortOrder } from '@/constants/disasters';
 import { Colors, radius } from '@/constants/theme';
+
+const logoMark = require('@/assets/images/app-logo-mark.png');
+
+const brandFont = Platform.select({
+  ios: 'Avenir Next',
+  android: 'sans-serif-condensed',
+  default: 'system-ui',
+});
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -48,7 +56,19 @@ export default function HomeScreen() {
   return (
     <ScreenShell testID="home-screen">
       <View style={styles.header}>
-        <Text style={styles.brand}>App-da</Text>
+        <View style={styles.brandLockup}>
+          <View style={styles.brandMark}>
+            <Image source={logoMark} resizeMode="contain" style={styles.brandMarkImage} />
+          </View>
+          <View>
+            <Text style={styles.brand}>
+              <Text style={styles.brandApp}>App</Text>
+              <Text style={styles.brandDash}>-</Text>
+              <Text style={styles.brandDa}>da</Text>
+            </Text>
+            <Text style={styles.brandTag}>disaster ready</Text>
+          </View>
+        </View>
         <Pressable
           style={styles.chip}
           testID="location-chip"
@@ -64,6 +84,31 @@ export default function HomeScreen() {
       {backendMode === 'firebase' ? (
         <Text style={styles.backendBadge} testID="backend-firebase">● Firebase connected</Text>
       ) : null}
+
+      <View style={styles.quickActions}>
+        <Pressable
+          style={[styles.actionTile, styles.firstAidTile]}
+          testID="first-aid-action"
+          onPress={() => router.push('/first-aid')}
+        >
+          <View style={styles.actionIcon}>
+            <Feather name="heart" size={24} color={Colors.dangerRed} />
+          </View>
+          <Text style={styles.actionTitle}>First Aid</Text>
+          <Text style={styles.actionSub}>CPR, bleeding, burns</Text>
+        </Pressable>
+        <Pressable
+          style={[styles.actionTile, styles.emergencyTile]}
+          testID="emergency-action"
+          onPress={() => router.push('/emergency')}
+        >
+          <View style={styles.actionIcon}>
+            <Feather name="alert-triangle" size={24} color={Colors.warningAmber} />
+          </View>
+          <Text style={styles.actionTitle}>Emergency</Text>
+          <Text style={styles.actionSub}>What to do now</Text>
+        </Pressable>
+      </View>
 
       {activeDrill ? <DrillAlertBanner drill={activeDrill} /> : null}
 
@@ -125,7 +170,37 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 12,
   },
-  brand: { fontSize: 26, fontWeight: '800', color: Colors.textPrimary },
+  brandLockup: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  brandMark: {
+    width: 42,
+    height: 42,
+    borderRadius: 13,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Colors.white,
+    shadowColor: Colors.dangerRed,
+    shadowOpacity: 0.18,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 3,
+  },
+  brandMarkImage: { width: 34, height: 34 },
+  brand: {
+    fontFamily: brandFont,
+    fontSize: 29,
+    fontWeight: '900',
+    lineHeight: 31,
+    color: Colors.textPrimary,
+  },
+  brandApp: { color: Colors.primaryBlue },
+  brandDash: { color: Colors.warningAmber },
+  brandDa: { color: Colors.dangerRed },
+  brandTag: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: Colors.textSecondary,
+    textTransform: 'uppercase',
+  },
   chip: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -142,6 +217,37 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginBottom: 8,
   },
+  quickActions: {
+    flexDirection: 'row',
+    gap: 12,
+    marginBottom: 18,
+  },
+  actionTile: {
+    flex: 1,
+    minHeight: 126,
+    borderRadius: radius.card,
+    padding: 14,
+    justifyContent: 'space-between',
+    borderWidth: 1,
+    borderColor: Colors.cardBorder,
+    shadowColor: '#000',
+    shadowOpacity: 0.08,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 2,
+  },
+  firstAidTile: { backgroundColor: '#FFF5F4' },
+  emergencyTile: { backgroundColor: '#FFF8E8' },
+  actionIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Colors.white,
+  },
+  actionTitle: { fontSize: 18, fontWeight: '800', color: Colors.textPrimary },
+  actionSub: { fontSize: 12, color: Colors.textSecondary, marginTop: 2 },
   sectionLabel: {
     fontSize: 11,
     fontWeight: '700',
