@@ -27,7 +27,7 @@ export function DrillAlertBanner({ drill }: Props) {
         <Feather name="alert-triangle" size={22} color={Colors.dangerRed} />
       </View>
       <View style={styles.content}>
-        <Text style={styles.title}>🚨 {title} drill — LIVE</Text>
+        <Text style={styles.title}>{title} drill — LIVE</Text>
         <Text style={styles.sub}>
           {drill.checkedInCount} / {drill.expectedCount} checked in
         </Text>

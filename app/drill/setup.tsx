@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { View, Text, TextInput, Pressable, StyleSheet, ScrollView, Alert } from 'react-native';
 import { useRouter, Stack } from 'expo-router';
+import Feather from '@expo/vector-icons/Feather';
 import { DISASTER_META } from '@/constants/disasters';
 import { useAuthStore } from '@/store/authStore';
 import { startDrill } from '@/services/drills';
@@ -131,13 +132,18 @@ export default function DrillSetupScreen() {
       {step === 4 && (
         <>
           <Text style={styles.h1}>Confirm drill</Text>
-          <Text style={styles.confirm}>
-            {DISASTER_META.find((d) => d.id === disasterType)?.icon}             {disasterType} — {expectedCount}{' '}
-            students — {useCustom ? customDuration || '?' : duration} minutes
-          </Text>
+          <View style={styles.confirmRow}>
+            <DisasterIcon disasterId={disasterType} size={22} />
+            <Text style={styles.confirm}>
+              {disasterType} — {expectedCount} students — {useCustom ? customDuration || '?' : duration} minutes
+            </Text>
+          </View>
           <Text style={styles.sub}>Notification will go to all {user.schoolCode} members.</Text>
           <Pressable testID="start-drill-confirm" style={styles.btnDanger} onPress={onStart}>
-            <Text style={styles.btnText}>🚨 Start Drill</Text>
+            <View style={styles.btnContent}>
+              <Feather name="alert-triangle" size={18} color={Colors.white} />
+              <Text style={styles.btnText}>Start Drill</Text>
+            </View>
           </Pressable>
           <Pressable onPress={() => setStep(1)}>
             <Text style={styles.link}>Cancel</Text>
@@ -177,10 +183,12 @@ const styles = StyleSheet.create({
   chip: { paddingHorizontal: 16, paddingVertical: 10, borderRadius: radius.button, borderWidth: 1, borderColor: Colors.cardBorder },
   chipActive: { backgroundColor: Colors.primaryBlue, borderColor: Colors.primaryBlue },
   chipTextActive: { color: Colors.white, fontWeight: '600' },
-  confirm: { fontSize: 18, fontWeight: '600', marginBottom: 8 },
+  confirmRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 8 },
+  confirm: { flex: 1, fontSize: 18, fontWeight: '600', color: Colors.textPrimary },
   sub: { color: Colors.textSecondary, marginBottom: 20 },
   btn: { backgroundColor: Colors.primaryBlue, padding: 16, borderRadius: radius.button, alignItems: 'center' },
   btnDanger: { backgroundColor: Colors.dangerRed, padding: 16, borderRadius: radius.button, alignItems: 'center' },
+  btnContent: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   btnText: { color: Colors.white, fontWeight: '700' },
   link: { textAlign: 'center', marginTop: 16, color: Colors.textSecondary },
 });

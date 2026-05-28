@@ -1,6 +1,8 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { View, Text, Pressable, StyleSheet, ScrollView } from 'react-native';
 import { useRouter, Stack, useFocusEffect } from 'expo-router';
+import Feather from '@expo/vector-icons/Feather';
+import { DisasterIcon } from '@/components/DisasterIcon';
 import { Waveform } from '@/components/Waveform';
 import { useAuthStore } from '@/store/authStore';
 import { getActiveDrill, subscribeDrill } from '@/services/drills';
@@ -134,9 +136,10 @@ export default function StudentDrillScreen() {
       testID="student-drill-screen"
     >
       <Stack.Screen options={{ title: 'Live Drill' }} />
-      <Text style={styles.live}>
-        {meta?.icon} {drill.disasterType.toUpperCase()} DRILL — LIVE
-      </Text>
+      <View style={styles.liveRow}>
+        <DisasterIcon disasterId={meta?.id ?? drill.disasterType} size={22} showCircle={false} tint={Colors.dangerRed} />
+        <Text style={styles.live}>{drill.disasterType.toUpperCase()} DRILL — LIVE</Text>
+      </View>
       <Waveform active />
       <Text style={styles.audioHint}>Audio guidance repeats until the drill ends</Text>
       <View style={styles.currentCard}>
@@ -151,9 +154,15 @@ export default function StudentDrillScreen() {
         const current = i === activeStep;
         return (
           <View key={step.key} style={[styles.stepRow, current && styles.stepRowActive]}>
-            <Text style={[styles.stepMark, current && styles.stepMarkActive]}>
-              {done ? '✓' : current ? '•' : i + 1}
-            </Text>
+            <View style={[styles.stepMark, current && styles.stepMarkActive]}>
+              {done ? (
+                <Feather name="check" size={15} color={current ? Colors.white : Colors.textSecondary} />
+              ) : current ? (
+                <Feather name="circle" size={10} color={Colors.white} />
+              ) : (
+                <Text style={styles.stepNumber}>{i + 1}</Text>
+              )}
+            </View>
             <View style={styles.stepTextCol}>
               <Text style={[styles.stepTitle, current && styles.stepTitleActive]}>{step.label}</Text>
               {current ? <Text style={styles.stepSub}>Listen and act calmly</Text> : null}
@@ -170,7 +179,12 @@ export default function StudentDrillScreen() {
           router.push('/drill/scan');
         }}
       >
-        <Text style={styles.btnText}>{checkedIn ? 'Already checked in ✅' : 'Scan QR at assembly point'}</Text>
+        <View style={styles.btnContent}>
+          {checkedIn ? <Feather name="check-circle" size={18} color={Colors.white} /> : null}
+          <Text style={styles.btnText}>
+            {checkedIn ? 'Already checked in' : 'Scan QR at assembly point'}
+          </Text>
+        </View>
       </Pressable>
       <Text style={styles.counter}>
         {drill.checkedInCount} / {drill.expectedCount} checked in
@@ -186,7 +200,8 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.bgLight },
   content: { padding: 24 },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 24 },
-  live: { fontSize: 18, fontWeight: '800', color: Colors.dangerRed, marginBottom: 16 },
+  liveRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 16 },
+  live: { fontSize: 18, fontWeight: '800', color: Colors.dangerRed, flex: 1 },
   audioHint: { color: Colors.textSecondary, marginVertical: 12 },
   currentCard: {
     backgroundColor: Colors.white,
@@ -216,18 +231,18 @@ const styles = StyleSheet.create({
     height: 26,
     borderRadius: 13,
     backgroundColor: '#F1F3F4',
-    color: Colors.textSecondary,
-    fontWeight: '800',
-    textAlign: 'center',
-    lineHeight: 26,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  stepMarkActive: { backgroundColor: Colors.primaryBlue, color: Colors.white },
+  stepMarkActive: { backgroundColor: Colors.primaryBlue },
+  stepNumber: { color: Colors.textSecondary, fontWeight: '800' },
   stepTextCol: { flex: 1 },
   stepTitle: { fontSize: 15, color: Colors.textPrimary, fontWeight: '700' },
   stepTitleActive: { color: Colors.primaryBlue },
   stepSub: { fontSize: 12, color: Colors.textSecondary, marginTop: 2 },
   btn: { backgroundColor: Colors.primaryBlue, padding: 16, borderRadius: radius.button, alignItems: 'center', marginTop: 24 },
   btnDisabled: { backgroundColor: Colors.textSecondary },
+  btnContent: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   btnText: { color: Colors.white, fontWeight: '700' },
   counter: { textAlign: 'center', marginTop: 16, color: Colors.textSecondary },
   leaveBtn: { marginTop: 20, alignItems: 'center', padding: 8 },

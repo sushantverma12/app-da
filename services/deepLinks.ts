@@ -40,7 +40,7 @@ export async function handleCheckInDeepLink(url: string): Promise<{
     : '';
   const message =
     result.ok && result.message !== 'Already checked in'
-      ? `✅ You're safe!${countMsg}`
+      ? `You're safe!${countMsg}`
       : result.message + countMsg;
   return { success: result.ok, message: message.trim(), drillId: drill.id };
 }

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
+import Feather from '@expo/vector-icons/Feather';
 import { subscribeDrill, completeDrill } from '@/services/drills';
 import { Drill } from '@/types';
 import { Colors, radius } from '@/constants/theme';
@@ -82,7 +83,10 @@ export default function DrillLiveScreen() {
   return (
     <View style={styles.container} testID="drill-live-screen">
       <Stack.Screen options={{ title: 'Live Drill' }} />
-      <Text style={styles.live}>🚨 {drill.disasterType.toUpperCase()} DRILL — LIVE</Text>
+      <View style={styles.liveRow}>
+        <Feather name="alert-triangle" size={20} color={Colors.dangerRed} />
+        <Text style={styles.live}>{drill.disasterType.toUpperCase()} DRILL — LIVE</Text>
+      </View>
       <Text style={styles.counter}>
         {drill.checkedInCount} / {drill.expectedCount}
       </Text>
@@ -90,9 +94,10 @@ export default function DrillLiveScreen() {
         <View style={[styles.barFill, { width: `${pct}%` }]} />
       </View>
       <Text style={styles.pct}>{pct}% safe</Text>
-      <Text style={styles.timer}>
-        ⏱️ {mins}:{secs.toString().padStart(2, '0')} remaining
-      </Text>
+      <View style={styles.timerRow}>
+        <Feather name="clock" size={24} color={Colors.textPrimary} />
+        <Text style={styles.timer}>{mins}:{secs.toString().padStart(2, '0')} remaining</Text>
+      </View>
       <Text style={styles.scanMeta}>First check-in: {ago(drill.firstScanAt)}</Text>
       <Text style={styles.scanMeta}>Last check-in: {ago(drill.lastScanAt)}</Text>
       <Pressable
@@ -110,12 +115,14 @@ export default function DrillLiveScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 24, backgroundColor: Colors.bgLight, justifyContent: 'center' },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  liveRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
   live: { fontSize: 16, fontWeight: '700', color: Colors.dangerRed, textAlign: 'center' },
   counter: { fontSize: 56, fontWeight: '800', textAlign: 'center', marginVertical: 16, color: Colors.textPrimary },
   barBg: { height: 12, backgroundColor: '#E0E0E0', borderRadius: 6, overflow: 'hidden' },
   barFill: { height: '100%', backgroundColor: Colors.safeGreen },
   pct: { textAlign: 'center', marginTop: 8, fontSize: 18, color: Colors.textSecondary },
-  timer: { textAlign: 'center', fontSize: 24, marginVertical: 16 },
+  timerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, marginVertical: 16 },
+  timer: { textAlign: 'center', fontSize: 24, color: Colors.textPrimary },
   scanMeta: { textAlign: 'center', fontSize: 14, color: Colors.textSecondary, marginBottom: 4 },
   title: { fontSize: 24, fontWeight: '800', marginBottom: 16 },
   stat: { fontSize: 16, marginBottom: 8, color: Colors.textPrimary },

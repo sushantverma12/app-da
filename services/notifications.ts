@@ -136,7 +136,7 @@ export async function notifyDrillStart(params: {
   const Notifications = await getNotifications();
   if (!Notifications) return;
 
-  const title = `🚨 ${params.disasterType.charAt(0).toUpperCase() + params.disasterType.slice(1)} Drill Started`;
+  const title = `${params.disasterType.charAt(0).toUpperCase() + params.disasterType.slice(1)} Drill Started`;
   try {
     await Notifications.scheduleNotificationAsync({
       content: {
@@ -168,7 +168,7 @@ export async function notifyEmergencyAlert(params: {
   try {
     await Notifications.scheduleNotificationAsync({
       content: {
-        title: `🚨 ${params.alertType}`,
+        title: params.alertType,
         body: params.message,
         data: { type: 'EMERGENCY_ALERT', schoolCode: params.schoolCode },
         sound: true,

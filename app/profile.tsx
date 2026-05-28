@@ -1,5 +1,6 @@
 import { View, Text, Pressable, StyleSheet, ScrollView } from 'react-native';
 import { useRouter, Stack } from 'expo-router';
+import Feather from '@expo/vector-icons/Feather';
 import { ScreenShell } from '@/components/ScreenShell';
 import { AppLogo } from '@/components/AppLogo';
 import { useAuthStore } from '@/store/authStore';
@@ -81,7 +82,11 @@ export default function ProfileScreen() {
         <View style={styles.badgeRow}>
           {BADGE_CATALOG.filter((b) => user.badgesEarned.includes(b.id)).map((b) => (
             <View key={b.id} style={styles.badge}>
-              <Text style={styles.badgeIcon}>{b.icon}</Text>
+              <Feather
+                name={b.icon as keyof typeof Feather.glyphMap}
+                size={24}
+                color={Colors.primaryBlue}
+              />
               <Text style={styles.badgeLabel}>{b.label}</Text>
             </View>
           ))}
@@ -89,7 +94,7 @@ export default function ProfileScreen() {
             .filter((id) => !BADGE_CATALOG.some((b) => b.id === id))
             .map((id) => (
               <View key={id} style={styles.badge}>
-                <Text style={styles.badgeIcon}>⭐</Text>
+                <Feather name="star" size={24} color={Colors.primaryBlue} />
                 <Text style={styles.badgeLabel}>{id.replace(/_/g, ' ')}</Text>
               </View>
             ))}
@@ -170,7 +175,6 @@ const styles = StyleSheet.create({
     width: '47%',
     alignItems: 'center',
   },
-  badgeIcon: { fontSize: 24 },
   badgeLabel: { fontSize: 11, textAlign: 'center', marginTop: 4, color: Colors.textSecondary },
   btn: {
     backgroundColor: Colors.primaryBlue,

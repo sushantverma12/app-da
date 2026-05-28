@@ -1,0 +1,297 @@
+APP-DA APK SUMMARY
+==================
+
+App name: App-da
+Package: com.appda.mobile
+Platform: Android APK built with Expo/EAS
+Purpose: Disaster awareness, school emergency alerts, mock drill management, student check-in, learning modules, quizzes, emergency resource lookup, and school chat.
+
+
+1. APK OVERVIEW
+---------------
+
+App-da is a React Native Expo mobile app for schools and students.
+
+Main user roles:
+- Admin: creates a school, starts mock drills, monitors live drill check-ins, sends emergency alerts, manages profile, views QR check-in code, and deletes alerts.
+- Student: joins school by code, receives drill and alert notifications, checks in during drills, studies disaster modules, takes quizzes, uses preparedness checklists, views resources, and joins school chat.
+- Guest: can browse learning modules and general app content without school features.
+
+Important APK behavior:
+- Remote push notifications work in EAS APK builds, not Expo Go.
+- Drill and alert push notifications are sent by Firebase Cloud Functions through Expo Push API.
+- Android push requires EAS FCM V1 credentials for package com.appda.mobile.
+- Resource map in native APK uses OpenStreetMap image tiles instead of react-native-maps to avoid APK map crashes.
+
+
+2. TECH STACK AND WHAT IT IS USED FOR
+-------------------------------------
+
+React 19:
+- Component model and state rendering.
+
+React Native 0.81:
+- Mobile UI primitives such as View, Text, Pressable, FlatList, Image, ScrollView.
+
+Expo SDK 54:
+- App runtime, Android/iOS build support, device APIs, splash, constants, notifications, camera, location, linking.
+
+Expo Router:
+- File-based navigation under the app/ directory.
+
+TypeScript:
+- Strong typing for app screens, services, data models, and stores.
+
+Firebase:
+- Authentication, Firestore database, Cloud Functions triggers, school/user/drill/alert/chat data.
+
+Firebase Cloud Functions:
+- Sends remote push notifications when drills or alerts are created.
+- Cleans expired chat messages.
+
+Expo Notifications:
+- Gets Expo push tokens in APK builds.
+- Handles notification taps and notification display.
+
+Expo Push API:
+- Delivers push notifications to student APK devices.
+
+Zustand:
+- Lightweight client state stores for auth, disasters, drills.
+
+AsyncStorage:
+- Local persistence for sessions, checklist progress, push status, local fallback data.
+
+Expo Camera:
+- QR scanner for drill check-in.
+
+Expo Location:
+- Detects city/district/state for local disaster risk and resources.
+
+Expo Speech:
+- Text/audio support for lesson content.
+
+React Native QRCode SVG:
+- Displays school check-in QR code.
+
+React Native SVG:
+- Required by QR code and vector rendering dependencies.
+
+React Native Web / React DOM:
+- Web support for Expo web builds.
+
+React Native Reanimated / Worklets:
+- Animation/runtime support required by Expo/React Native stack.
+
+React Native Safe Area Context:
+- Safe layout around device notches and system bars.
+
+React Native Screens:
+- Native navigation screen optimization.
+
+OpenStreetMap tiles:
+- Native APK resource map preview through regular Image tiles.
+
+Google Maps links:
+- Opens full map/directions externally from resource cards and map button.
+
+EAS:
+- Builds internal preview APKs.
+
+Firebase CLI:
+- Deploys Firestore rules, indexes, and Cloud Functions.
+
+
+3. IMPORTANT DATA FLOW
+----------------------
+
+Login/Register:
+- User signs in through Firebase Auth.
+- Profile is loaded from users/{uid}.
+- APK registers an Expo push token and stores it on the user document.
+
+Drill:
+- Admin creates a drills document.
+- Cloud Function onDrillCreated finds student tokens for the school.
+- Expo Push API sends drill notification.
+- Student taps notification and opens drill/student.
+
+Alert:
+- Admin creates an alerts document.
+- Cloud Function onAlertCreated finds student tokens for the school.
+- Expo Push API sends emergency notification.
+- Student Alerts page subscribes to the school alerts query.
+
+Map:
+- App resolves resources near selected district/location.
+- Native APK renders a 3x3 OpenStreetMap tile preview with marker.
+- Full map opens externally in Google Maps.
+
+
+4. FILE-BY-FILE PURPOSE
+-----------------------
+
+Root configuration and docs:
+- package.json: Project scripts, app entry, dependencies, and dev dependencies.
+- package-lock.json: Locked npm dependency versions for reproducible installs.
+- app.config.js: Expo app config, package id, permissions, plugins, Firebase env mapping, EAS project id.
+- eas.json: EAS build profiles for development, preview APK, and production.
+- tsconfig.json: TypeScript configuration and path aliases.
+- firebase.json: Firebase deploy configuration.
+- firestore.rules: Firestore security rules for users, schools, alerts, drills, messages, and read-only content.
+- firestore.indexes.json: Firestore composite index definitions.
+- google-services.json: Android Firebase native configuration for package com.appda.mobile.
+- serviceAccountKey.example.json: Example Firebase service account file shape.
+- README.md: Main setup, feature, backend, build, and push documentation.
+- docs/E2E_TEST.md: Manual end-to-end test checklist for auth, drills, alerts, and push.
+- docs/appda_complete_spec_merged.md: Full merged product and technical specification.
+
+Reference text content:
+- Disaster_Complete_Guide.txt: Long disaster safety reference material.
+- Disaster_Safety_MCQ.txt: MCQ question source/reference content.
+- disaster_preparedness_checklists.txt: Preparedness checklist reference content.
+
+App routes:
+- app/_layout.tsx: Root navigation stack, push registration, notification tap routing, deep link handling.
+- app/index.tsx: Initial app entry route and redirect behavior.
+- app/home.tsx: Home dashboard with risk cards, location chip, join banner, drill banner, and disaster grid.
+- app/login.tsx: Login screen; signs user in and registers push notifications.
+- app/register.tsx: Registration screen for admin/student accounts and push registration.
+- app/admin-profile.tsx: Admin profile and admin actions entry point.
+- app/profile.tsx: User profile screen and account actions.
+- app/location.tsx: Location detection/manual location screen.
+- app/alerts.tsx: Alerts list, admin alert compose/send, admin delete alert controls, notification enable button.
+- app/chat.tsx: School chat channel screen.
+- app/checkin.tsx: Deep-link check-in route for drill assembly QR links.
+- app/+html.tsx: Expo web HTML wrapper customization.
+- app/+not-found.tsx: Fallback route for unknown pages.
+- app/disaster/[id].tsx: Disaster detail screen with learn, quiz, checklist, and map tabs.
+- app/quiz/[id].tsx: Quiz screen for a disaster module.
+- app/drill/setup.tsx: Admin drill setup wizard.
+- app/drill/live.tsx: Admin live drill monitoring screen.
+- app/drill/student.tsx: Student active drill/check-in screen.
+- app/drill/scan.tsx: QR scanner route for check-in.
+
+Components:
+- components/AppLogo.tsx: Reusable App-da logo display.
+- components/AssemblyQRScanner.tsx: Camera-based QR scanner for assembly check-in.
+- components/BottomNavbar.tsx: Bottom navigation bar for main tabs.
+- components/DisasterCard.tsx: Reusable disaster card component.
+- components/DisasterGridCard.tsx: Grid card for disaster modules on home.
+- components/DisasterIcon.tsx: Disaster icon rendering from icon metadata.
+- components/DisasterVideoLesson.tsx: Video lesson display for disaster module content.
+- components/DrillAlertBanner.tsx: Home banner for active school drills.
+- components/EditScreenInfo.tsx: Template/help component retained from Expo starter.
+- components/ExternalLink.tsx: Link component for opening external URLs.
+- components/FaqBot.tsx: Offline FAQ chatbot UI.
+- components/FeaturedRiskCard.tsx: Large top risk card on home.
+- components/QRCard.tsx: QR code display card for school/check-in data.
+- components/ResourceMap.tsx: Platform resolver for ResourceMap.
+- components/ResourceMap.native.tsx: Native APK resource map preview, resource cards, helplines, Google Maps links.
+- components/ResourceMap.web.tsx: Web embedded OpenStreetMap iframe map, resource cards, helplines.
+- components/RiskBadge.tsx: Visual badge for high/medium/low risk.
+- components/RoleBadge.tsx: Admin/student role label.
+- components/ScreenShell.tsx: Shared screen layout, scroll behavior, safe area, optional nav.
+- components/StyledText.tsx: Shared styled text utilities.
+- components/Themed.tsx: Themed text/view utilities.
+- components/Waveform.tsx: Audio waveform visual component.
+- components/useClientOnlyValue.ts: Native hook for client-only values.
+- components/useClientOnlyValue.web.ts: Web hook variant for client-only values.
+- components/useColorScheme.ts: Native color scheme hook.
+- components/useColorScheme.web.ts: Web color scheme hook variant.
+- components/__tests__/StyledText-test.js: Unit test for StyledText.
+
+Constants:
+- constants/Colors.ts: Default color constants.
+- constants/theme.ts: Main app colors, radius values, and shared design tokens.
+- constants/disasters.ts: Disaster metadata, local disaster data, local quiz data, local resources, risk helpers.
+- constants/disasterEducationContent.ts: Educational content sections for disaster modules.
+- constants/disasterIcons.ts: Icon mapping for each disaster.
+- constants/disasterVideos.ts: Video URL mapping for disaster lessons.
+
+Hooks:
+- hooks/useActiveSchoolDrill.ts: Polls/loads active school drill for banners and student state.
+
+Stores:
+- store/authStore.ts: Zustand auth state, Firebase/local login/register/logout, session init.
+- store/disasterStore.ts: Disaster/location/checklist/join-banner state.
+- store/drillStore.ts: Active drill state shared across drill screens.
+
+Services:
+- services/firebase.ts: Firebase app setup, auth, Firestore CRUD, drills, alerts, messages, resources.
+- services/notifications.ts: Push availability, Expo token registration, notification listeners, local notification helpers.
+- services/content.ts: Loads disasters, quizzes, resources, live OSM resources, geocoding, resource filtering.
+- services/drills.ts: Firebase/local drill service wrapper.
+- services/localDrills.ts: Local fallback drill implementation.
+- services/localAuth.ts: Local fallback auth/session implementation.
+- services/location.ts: Location permission, reverse geocode, save/load location.
+- services/profile.ts: User profile update helpers and completed module merge logic.
+- services/checkIn.ts: Drill check-in service logic.
+- services/deepLinks.ts: Handles appda:// check-in deep links.
+- services/audio.ts: Audio/speech helper logic.
+- services/chatbot.ts: Offline FAQ bot answers and matching logic.
+
+Types:
+- types/index.ts: Shared TypeScript interfaces and union types for users, disasters, quizzes, resources, drills, alerts, messages.
+
+Firebase Functions:
+- functions/package.json: Cloud Functions dependencies and deploy script.
+- functions/package-lock.json: Locked Cloud Functions dependency versions.
+- functions/index.js: Firestore triggers for drill/alert push notifications and scheduled chat cleanup.
+
+Scripts:
+- scripts/seed-data.js: Seed data objects for disasters, resources, quiz template.
+- scripts/seed.js: Seeds Firestore collections from local data.
+- scripts/setup-database.js: Database setup helper for rules/indexes/seed/verify workflow.
+- scripts/verify-database.js: Verifies required Firestore collections and seed data.
+- scripts/disaster-education-content.js: Script/reference for disaster education content generation.
+
+Assets:
+- assets/images/icon.png: Main app icon.
+- assets/images/adaptive-icon.png: Android adaptive icon foreground.
+- assets/images/splash-icon.png: Splash screen image.
+- assets/images/favicon.png: Web favicon.
+- assets/images/app-logo.png: App logo image.
+- assets/images/notification-icon.png: Android notification icon.
+- assets/fonts/SpaceMono-Regular.ttf: Bundled font asset.
+
+
+5. BUILD AND DEPLOY COMMANDS
+----------------------------
+
+Install dependencies:
+npm install
+
+Run development server:
+npm run start
+
+Clear Expo cache:
+npm run start:clear
+
+Typecheck:
+npm run typecheck
+
+Build Android preview APK:
+npm run eas:build:android
+
+Deploy Firestore rules and indexes:
+npm run db:deploy
+
+Deploy Cloud Functions:
+npm run functions:deploy
+
+Deploy backend rules and functions:
+npm run backend:deploy
+
+
+6. CURRENT IMPORTANT IMPLEMENTATION NOTES
+-----------------------------------------
+
+- Native map uses image tiles, not react-native-maps, to avoid standalone APK map crashes.
+- Alert delete is available for admins in the Alerts screen.
+- Alert send returns the created Firestore id and updates admin UI immediately.
+- Remote alert and drill notifications require student APK login so expoPushToken is stored.
+- Expo Go is not enough for closed-app remote push testing.
+- For UI changes in an APK, rebuild and reinstall the APK.
+- For server/EAS credential changes, a rebuild is not always needed.
+

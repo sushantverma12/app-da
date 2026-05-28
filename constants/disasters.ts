@@ -7,16 +7,16 @@ import {
 } from '@/constants/disasterEducationContent';
 
 export const DISASTER_META: { id: string; title: string; icon: string; description: string }[] = [
-  { id: 'flood', title: 'Flood', icon: '🌊', description: 'Riverine, flash, and coastal flooding' },
-  { id: 'cyclone', title: 'Cyclone & Storm', icon: '🌀', description: 'Tropical cyclones and severe weather' },
-  { id: 'lightning', title: 'Lightning & Thunderstorm', icon: '⚡', description: 'Lightning, tornado, and hail' },
-  { id: 'heatwave', title: 'Heatwave', icon: '🌡️', description: 'Extreme heat events' },
-  { id: 'coldwave', title: 'Cold Wave', icon: '❄️', description: 'Cold wave and severe winter' },
-  { id: 'earthquake', title: 'Earthquake', icon: '🫨', description: 'Ground movement and tsunami risk' },
-  { id: 'landslide', title: 'Landslide & Avalanche', icon: '🏔️', description: 'Landslides, avalanches, mudslides' },
-  { id: 'wildfire', title: 'Wildfire', icon: '🔥', description: 'Forest and brush fires' },
-  { id: 'drought', title: 'Drought', icon: '🌵', description: 'Prolonged water shortage' },
-  { id: 'epidemic', title: 'Epidemic & Disease', icon: '🦠', description: 'Viral and bacterial outbreaks' },
+  { id: 'flood', title: 'Flood', icon: 'flood', description: 'Riverine, flash, and coastal flooding' },
+  { id: 'cyclone', title: 'Cyclone & Storm', icon: 'cyclone', description: 'Tropical cyclones and severe weather' },
+  { id: 'lightning', title: 'Lightning & Thunderstorm', icon: 'lightning', description: 'Lightning, tornado, and hail' },
+  { id: 'heatwave', title: 'Heatwave', icon: 'heatwave', description: 'Extreme heat events' },
+  { id: 'coldwave', title: 'Cold Wave', icon: 'coldwave', description: 'Cold wave and severe winter' },
+  { id: 'earthquake', title: 'Earthquake', icon: 'earthquake', description: 'Ground movement and tsunami risk' },
+  { id: 'landslide', title: 'Landslide & Avalanche', icon: 'landslide', description: 'Landslides, avalanches, mudslides' },
+  { id: 'wildfire', title: 'Wildfire', icon: 'wildfire', description: 'Forest and brush fires' },
+  { id: 'drought', title: 'Drought', icon: 'drought', description: 'Prolonged water shortage' },
+  { id: 'epidemic', title: 'Epidemic & Disease', icon: 'epidemic', description: 'Viral and bacterial outbreaks' },
 ];
 
 const defaultRisk: Record<string, 'high' | 'medium' | 'low'> = {

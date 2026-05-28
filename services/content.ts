@@ -22,7 +22,7 @@ function mergeDisaster(doc: Record<string, unknown>): Disaster {
     title: (doc.title as string) ?? meta?.title ?? id,
     description: (doc.description as string) ?? meta?.description ?? '',
     riskByRegion: (doc.riskByRegion as Disaster['riskByRegion']) ?? {},
-    icon: meta?.icon ?? '⚠️',
+    icon: meta?.icon ?? 'alert',
     contentSections: local?.contentSections ?? (doc.contentSections as Disaster['contentSections']) ?? {
       whatIsIt: '',
       howToPrepare: [],

@@ -1,4 +1,5 @@
 import { View, Text, StyleSheet, Linking, Pressable, Image } from 'react-native';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { Resource } from '@/types';
 import { Colors, radius } from '@/constants/theme';
 
@@ -18,6 +19,12 @@ const UNIVERSAL_HELPLINES = [
 ];
 
 const MAP_ZOOM = 12;
+const RESOURCE_ICONS: Record<Resource['type'], keyof typeof MaterialCommunityIcons.glyphMap> = {
+  hospital: 'hospital-building',
+  fire_station: 'fire-truck',
+  police: 'police-badge-outline',
+  shelter: 'home-city-outline',
+};
 
 export function ResourceMap({ resources, district, center }: Props) {
   const mapCenter = getMapCenter(resources, center);
@@ -85,10 +92,14 @@ export function ResourceMap({ resources, district, center }: Props) {
               )
             }
           >
-            <Text style={styles.name}>
-              {r.type === 'hospital' ? '🏥' : r.type === 'fire_station' ? '🚒' : r.type === 'police' ? '👮' : '🏕️'}{' '}
-              {r.name}
-            </Text>
+            <View style={styles.nameRow}>
+              <MaterialCommunityIcons
+                name={RESOURCE_ICONS[r.type]}
+                size={20}
+                color={Colors.primaryBlue}
+              />
+              <Text style={styles.name}>{r.name}</Text>
+            </View>
             {r.phone ? <Text style={styles.phone}>{r.phone}</Text> : null}
             <Text style={styles.coords}>
               {r.lat.toFixed(4)}, {r.lng.toFixed(4)} · Open in Maps
@@ -221,6 +232,7 @@ const styles = StyleSheet.create({
     padding: 12,
     marginBottom: 8,
   },
+  nameRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   name: { fontSize: 15, fontWeight: '600', color: Colors.textPrimary },
   phone: { fontSize: 14, color: Colors.primaryBlue, marginTop: 4 },
   coords: { fontSize: 12, color: Colors.textSecondary, marginTop: 4 },

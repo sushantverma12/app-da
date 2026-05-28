@@ -4,9 +4,9 @@ import { localUpdateProfile } from './localAuth';
 import { useAuthStore } from '@/store/authStore';
 
 export const BADGE_CATALOG: { id: string; label: string; icon: string }[] = [
-  { id: 'first_quiz', label: 'First quiz completed', icon: '🎯' },
-  { id: 'quiz_master', label: 'Scored 80% or higher', icon: '🏆' },
-  { id: 'checklist_ready', label: 'Checklist complete', icon: '✅' },
+  { id: 'first_quiz', label: 'First quiz completed', icon: 'target' },
+  { id: 'quiz_master', label: 'Scored 80% or higher', icon: 'award' },
+  { id: 'checklist_ready', label: 'Checklist complete', icon: 'check-circle' },
 ];
 
 export async function saveUserProfile(uid: string, data: Partial<AppUser>): Promise<void> {
