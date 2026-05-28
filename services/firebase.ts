@@ -23,6 +23,7 @@ import {
   addDoc,
   deleteDoc,
   onSnapshot,
+  runTransaction,
   serverTimestamp,
   Firestore,
   Timestamp,
@@ -30,7 +31,7 @@ import {
   limit,
 } from 'firebase/firestore';
 import Constants from 'expo-constants';
-import { AppUser, Drill, EmergencyAlert, ChannelMessage, School } from '@/types';
+import { AppUser, Drill, DrillCheckIn, EmergencyAlert, ChannelMessage, School } from '@/types';
 
 const extra = Constants.expoConfig?.extra ?? {};
 
@@ -216,13 +217,14 @@ export async function fetchResources(district: string, state: string) {
   return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
 }
 
-export async function startDrill(data: Omit<Drill, 'id' | 'checkedInCount' | 'checkedInUIDs' | 'anonymousCount'>) {
+export async function startDrill(data: Omit<Drill, 'id' | 'checkedInCount' | 'checkedInUIDs' | 'checkIns' | 'anonymousCount'>) {
   if (!db) throw new Error('Firebase not configured');
   const ref = await addDoc(collection(db, 'drills'), {
     ...data,
     status: 'active',
     checkedInCount: 0,
     checkedInUIDs: [],
+    checkIns: [],
     anonymousCount: 0,
     startedAt: serverTimestamp(),
   });
@@ -237,6 +239,11 @@ export function subscribeDrill(drillId: string, cb: (drill: Drill | null) => voi
       return;
     }
     const d = snap.data();
+    const checkIns = ((d.checkIns as Array<Record<string, unknown>> | undefined) ?? []).map((row) => ({
+      uid: (row.uid as string | null) ?? null,
+      name: (row.name as string | undefined) ?? 'Student',
+      checkedInAt: (row.checkedInAt as Timestamp)?.toDate?.() ?? new Date(row.checkedInAt as string),
+    }));
     cb({
       id: snap.id,
       ...d,
@@ -244,6 +251,7 @@ export function subscribeDrill(drillId: string, cb: (drill: Drill | null) => voi
       firstScanAt: (d.firstScanAt as Timestamp)?.toDate?.(),
       lastScanAt: (d.lastScanAt as Timestamp)?.toDate?.(),
       completedAt: (d.completedAt as Timestamp)?.toDate?.(),
+      checkIns,
     } as Drill);
   });
 }
@@ -269,32 +277,58 @@ export async function getActiveDrill(schoolCode: string): Promise<(Drill & { id:
 
 export async function checkInToDrill(
   drillId: string,
-  uid: string | null
+  uid: string | null,
+  name?: string
 ): Promise<{ ok: boolean; message: string }> {
   if (!db) return { ok: false, message: 'Firebase not configured' };
   const ref = doc(db, 'drills', drillId);
-  const snap = await getDoc(ref);
-  if (!snap.exists()) return { ok: false, message: 'Drill not found' };
-  const drill = snap.data();
-  if (drill.status !== 'active') return { ok: false, message: 'No active drill' };
-  const uids: string[] = drill.checkedInUIDs ?? [];
-  if (uid) {
-    if (uids.includes(uid)) return { ok: true, message: 'Already checked in' };
-    await updateDoc(ref, {
-      checkedInUIDs: [...uids, uid],
+  const result = await runTransaction(db, async (transaction) => {
+    const snap = await transaction.get(ref);
+    if (!snap.exists()) return { ok: false, message: 'Drill not found' };
+    const drill = snap.data();
+    if (drill.status !== 'active') return { ok: false, message: 'No active drill' };
+    const uids: string[] = drill.checkedInUIDs ?? [];
+    const anonymousCount = drill.anonymousCount ?? 0;
+    const checkIns: DrillCheckIn[] = drill.checkIns ?? [];
+    const checkedInAt = new Date();
+    const displayName = name?.trim() || (uid ? 'Student' : `Anonymous ${anonymousCount + 1}`);
+
+    if (uid && uids.includes(uid)) {
+      const existingIndex = checkIns.findIndex((entry) => entry.uid === uid);
+      if (existingIndex >= 0) {
+        const existing = checkIns[existingIndex];
+        if (existing.name !== 'Student' || !name?.trim()) {
+          return { ok: true, message: 'Already checked in' };
+        }
+        const updatedCheckIns = [...checkIns];
+        updatedCheckIns[existingIndex] = { ...existing, name: displayName };
+        transaction.update(ref, { checkIns: updatedCheckIns });
+        return { ok: true, message: 'Already checked in' };
+      }
+      transaction.update(ref, {
+        checkIns: [...checkIns, { uid, name: displayName, checkedInAt }],
+        lastScanAt: checkedInAt,
+        ...(drill.firstScanAt ? {} : { firstScanAt: checkedInAt }),
+      });
+      return { ok: true, message: 'Already checked in' };
+    }
+
+    const nextCheckIn = {
+      uid,
+      name: displayName,
+      checkedInAt,
+    };
+    transaction.update(ref, {
+      checkedInUIDs: uid ? [...uids, uid] : uids,
+      anonymousCount: uid ? anonymousCount : anonymousCount + 1,
       checkedInCount: (drill.checkedInCount ?? 0) + 1,
-      lastScanAt: serverTimestamp(),
-      ...(drill.firstScanAt ? {} : { firstScanAt: serverTimestamp() }),
+      checkIns: [...checkIns, nextCheckIn],
+      lastScanAt: checkedInAt,
+      ...(drill.firstScanAt ? {} : { firstScanAt: checkedInAt }),
     });
-  } else {
-    await updateDoc(ref, {
-      anonymousCount: (drill.anonymousCount ?? 0) + 1,
-      checkedInCount: (drill.checkedInCount ?? 0) + 1,
-      lastScanAt: serverTimestamp(),
-      ...(drill.firstScanAt ? {} : { firstScanAt: serverTimestamp() }),
-    });
-  }
-  return { ok: true, message: 'Checked in!' };
+    return { ok: true, message: 'Checked in!' };
+  });
+  return result;
 }
 
 export async function completeDrill(drillId: string) {
@@ -303,6 +337,11 @@ export async function completeDrill(drillId: string) {
     status: 'completed',
     completedAt: serverTimestamp(),
   });
+}
+
+export async function deleteDrill(drillId: string) {
+  if (!db) return;
+  await deleteDoc(doc(db, 'drills', drillId));
 }
 
 export async function sendEmergencyAlert(alert: Omit<EmergencyAlert, 'id' | 'sentAt'>) {

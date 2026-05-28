@@ -28,21 +28,38 @@ export async function handleCheckInDeepLink(url: string): Promise<{
   message: string;
   drillId?: string;
 }> {
-  const schoolCode = parseCheckInUrl(url);
+  const schoolCode = parseSchoolFromQrData(url);
   if (!schoolCode) return { success: false, message: 'Invalid check-in link' };
-  const drill = await getActiveDrill(schoolCode);
-  if (!drill) return { success: false, message: 'No active drill right now.' };
-  const uid = useAuthStore.getState().user?.uid ?? null;
-  const result = await checkInToDrill(drill.id, uid);
-  const updated = await getActiveDrill(schoolCode);
-  const countMsg = updated
-    ? ` ${updated.checkedInCount} / ${updated.expectedCount} checked in.`
-    : '';
-  const message =
-    result.ok && result.message !== 'Already checked in'
-      ? `You're safe!${countMsg}`
-      : result.message + countMsg;
-  return { success: result.ok, message: message.trim(), drillId: drill.id };
+  try {
+    const drill = await getActiveDrill(schoolCode);
+    if (!drill) return { success: false, message: 'No active drill right now.' };
+    const user = useAuthStore.getState().user;
+    const result = await checkInToDrill(drill.id, user?.uid ?? null, user?.name);
+    const updated = await getActiveDrill(schoolCode);
+    const countMsg = updated
+      ? ` ${updated.checkedInCount} / ${updated.expectedCount} checked in.`
+      : '';
+    const message =
+      result.ok && result.message !== 'Already checked in'
+        ? `You're safe!${countMsg}`
+        : result.message + countMsg;
+    return { success: result.ok, message: message.trim(), drillId: drill.id };
+  } catch (e: unknown) {
+    const code = (e as { code?: string })?.code;
+    if (code === 'permission-denied') {
+      const user = useAuthStore.getState().user;
+      return {
+        success: false,
+        message: user
+          ? 'Check-in was blocked by Firestore rules. Ask the admin to deploy the latest database rules, then scan again.'
+          : 'Please sign in with your school account, then scan the QR again.',
+      };
+    }
+    return {
+      success: false,
+      message: e instanceof Error ? e.message : 'Check-in failed. Please try again.',
+    };
+  }
 }
 
 export const linkingConfig = {

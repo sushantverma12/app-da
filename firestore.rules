@@ -20,7 +20,7 @@ service cloud.firestore {
 
     function onlyDrillCheckInFields() {
       return request.resource.data.diff(resource.data).affectedKeys()
-        .hasOnly(['checkedInUIDs', 'checkedInCount', 'anonymousCount', 'lastScanAt', 'firstScanAt']);
+        .hasOnly(['checkedInUIDs', 'checkedInCount', 'checkIns', 'anonymousCount', 'lastScanAt', 'firstScanAt']);
     }
 
     match /disasters/{id} { allow read: if true; }
@@ -51,6 +51,7 @@ service cloud.firestore {
       allow create: if isAdmin(request.resource.data.schoolCode);
       allow update: if isAdmin(resource.data.schoolCode)
         || (isSchoolMember(resource.data.schoolCode) && onlyDrillCheckInFields());
+      allow delete: if isAdmin(resource.data.schoolCode);
     }
 
     match /messages/{schoolCode}/channel/{messageId} {

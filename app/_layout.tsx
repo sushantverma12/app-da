@@ -5,7 +5,7 @@ import * as Linking from 'expo-linking';
 import { ThemeProvider, DefaultTheme } from '@react-navigation/native';
 import { useAuthStore } from '@/store/authStore';
 import { useDrillStore } from '@/store/drillStore';
-import { handleCheckInDeepLink } from '@/services/deepLinks';
+import { handleCheckInDeepLink, parseCheckInUrl } from '@/services/deepLinks';
 import {
   addNotificationResponseListener,
   registerForPushNotifications,
@@ -27,6 +27,11 @@ export default function RootLayout() {
   useEffect(() => {
     const unsubAuth = init();
     const onUrl = async (event: { url: string }) => {
+      const schoolCode = parseCheckInUrl(event.url);
+      if (schoolCode) {
+        router.push({ pathname: '/checkin', params: { school: schoolCode } });
+        return;
+      }
       const result = await handleCheckInDeepLink(event.url);
       if (result.success) {
         if (result.drillId) useDrillStore.getState().setActiveDrill(null, result.drillId);

@@ -13,7 +13,7 @@ async function saveAll(drills: Record<string, Drill>) {
 }
 
 export async function localStartDrill(
-  data: Omit<Drill, 'id' | 'checkedInCount' | 'checkedInUIDs' | 'anonymousCount'>
+  data: Omit<Drill, 'id' | 'checkedInCount' | 'checkedInUIDs' | 'checkIns' | 'anonymousCount'>
 ): Promise<string> {
   const drills = await getAll();
   const id = `drill_${Date.now()}`;
@@ -23,6 +23,7 @@ export async function localStartDrill(
     status: 'active',
     checkedInCount: 0,
     checkedInUIDs: [],
+    checkIns: [],
     anonymousCount: 0,
     startedAt: new Date(),
   };
@@ -47,16 +48,42 @@ export function localSubscribeDrill(drillId: string, cb: (d: Drill | null) => vo
   return () => clearInterval(interval);
 }
 
-export async function localCheckIn(drillId: string, uid: string | null) {
+export async function localCheckIn(drillId: string, uid: string | null, name?: string) {
   const drills = await getAll();
   const drill = drills[drillId];
   if (!drill || drill.status !== 'active') return { ok: false, message: 'No active drill' };
-  if (uid && drill.checkedInUIDs.includes(uid)) return { ok: true, message: 'Already checked in' };
+  const checkedInAt = new Date();
+  const displayName = name?.trim() || (uid ? 'Student' : `Anonymous ${drill.anonymousCount + 1}`);
+  if (uid && drill.checkedInUIDs.includes(uid)) {
+    const existingIndex = (drill.checkIns ?? []).findIndex((entry) => entry.uid === uid);
+    if (existingIndex >= 0) {
+      const existing = drill.checkIns?.[existingIndex];
+      if (existing && existing.name === 'Student' && name?.trim()) {
+        drill.checkIns = [...(drill.checkIns ?? [])];
+        drill.checkIns[existingIndex] = { ...existing, name: displayName };
+        await saveAll(drills);
+      }
+      return { ok: true, message: 'Already checked in' };
+    }
+    drill.checkIns = [...(drill.checkIns ?? []), { uid, name: displayName, checkedInAt }];
+    drill.lastScanAt = checkedInAt;
+    if (!drill.firstScanAt) drill.firstScanAt = checkedInAt;
+    await saveAll(drills);
+    return { ok: true, message: 'Already checked in' };
+  }
   if (uid) drill.checkedInUIDs.push(uid);
   else drill.anonymousCount += 1;
+  drill.checkIns = [
+    ...(drill.checkIns ?? []),
+    {
+      uid,
+      name: displayName,
+      checkedInAt,
+    },
+  ];
   drill.checkedInCount += 1;
-  drill.lastScanAt = new Date();
-  if (!drill.firstScanAt) drill.firstScanAt = new Date();
+  drill.lastScanAt = checkedInAt;
+  if (!drill.firstScanAt) drill.firstScanAt = checkedInAt;
   await saveAll(drills);
   return { ok: true, message: 'Checked in!' };
 }
@@ -68,4 +95,10 @@ export async function localCompleteDrill(drillId: string) {
     drills[drillId].completedAt = new Date();
     await saveAll(drills);
   }
+}
+
+export async function localDeleteDrill(drillId: string) {
+  const drills = await getAll();
+  delete drills[drillId];
+  await saveAll(drills);
 }

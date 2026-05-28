@@ -74,10 +74,17 @@ export interface Drill {
   expectedCount: number;
   checkedInCount: number;
   checkedInUIDs: string[];
+  checkIns?: DrillCheckIn[];
   anonymousCount: number;
   firstScanAt?: Date;
   lastScanAt?: Date;
   completedAt?: Date;
+}
+
+export interface DrillCheckIn {
+  uid: string | null;
+  name: string;
+  checkedInAt: Date;
 }
 
 export interface School {
