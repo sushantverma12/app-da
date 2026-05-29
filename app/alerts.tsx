@@ -27,7 +27,6 @@ export default function AlertsScreen() {
   const [compose, setCompose] = useState(false);
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
-  const [pushStatus, setPushStatus] = useState('');
 
   useEffect(() => {
     if (!user) return;
@@ -43,13 +42,6 @@ export default function AlertsScreen() {
     const id = setInterval(load, 3000);
     return () => clearInterval(id);
   }, [user]);
-
-  useEffect(() => {
-    getPushStatus().then((status) => {
-      if (status?.status === 'registered') setPushStatus('Notifications enabled');
-      else if (status?.status) setPushStatus(`Notifications: ${status.status}`);
-    });
-  }, []);
 
   if (!user) {
     return (
@@ -134,12 +126,10 @@ export default function AlertsScreen() {
     const token = await registerForPushNotifications(user.uid);
     const status = await getPushStatus();
     if (token) {
-      setPushStatus('Notifications enabled');
-      RNAlert.alert('Notifications enabled', 'This device is ready to receive school alerts.');
+      RNAlert.alert('Alerts enabled', 'This device is ready to receive school alerts.');
       return;
     }
     const detail = status?.detail ? `\n\n${status.detail}` : '';
-    setPushStatus(`Notifications: ${status?.status ?? 'not enabled'}`);
     RNAlert.alert('Notifications not enabled', `Could not register this device.${detail}`);
   };
 
@@ -148,7 +138,7 @@ export default function AlertsScreen() {
       <Text style={styles.title}>Alerts</Text>
       <Pressable testID="enable-notifications" style={styles.notifyBtn} onPress={enableNotifications}>
         <Feather name="bell" size={16} color={Colors.primaryBlue} />
-        <Text style={styles.notifyText}>{pushStatus || 'Enable notifications'}</Text>
+        <Text style={styles.notifyText}>Enable alerts</Text>
       </Pressable>
       {user.role === 'admin' ? (
         <Pressable testID="compose-alert" style={styles.btn} onPress={() => setCompose(!compose)}>

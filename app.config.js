@@ -46,6 +46,14 @@ export default {
       permissions: [
         'ACCESS_FINE_LOCATION',
         'ACCESS_COARSE_LOCATION',
+        'ACCESS_WIFI_STATE',
+        'CHANGE_WIFI_STATE',
+        'BLUETOOTH',
+        'BLUETOOTH_ADMIN',
+        'BLUETOOTH_SCAN',
+        'BLUETOOTH_CONNECT',
+        'BLUETOOTH_ADVERTISE',
+        'NEARBY_WIFI_DEVICES',
         'CAMERA',
         'POST_NOTIFICATIONS',
       ],
@@ -64,6 +72,8 @@ export default {
     },
     plugins: [
       'expo-router',
+      'expo-font',
+      'expo-web-browser',
       [
         'expo-notifications',
         { icon: './assets/images/notification-icon.png', color: '#D93025' },
@@ -80,6 +90,15 @@ export default {
         {
           cameraPermission:
             'App-da uses the camera to scan assembly QR codes for drill check-in and ending drills.',
+        },
+      ],
+      [
+        './node_modules/expo-nearby-connections/plugin/build',
+        {
+          bluetoothUsagePermissionText:
+            'App-da uses Bluetooth to discover and connect to nearby phones during emergencies.',
+          localNetworkUsagePermissionText:
+            'App-da uses the local network to discover nearby phones during emergencies.',
         },
       ],
     ],

@@ -66,11 +66,14 @@ export async function registerForPushNotifications(uid?: string): Promise<string
     }),
   });
 
-  const { status: existing } = await Notifications.getPermissionsAsync();
-  let finalStatus = existing;
-  if (existing !== 'granted') {
-    const { status } = await Notifications.requestPermissionsAsync();
-    finalStatus = status;
+  const existingPermissions = (await Notifications.getPermissionsAsync()) as { granted?: boolean; status?: string };
+  let finalStatus = existingPermissions.granted ? 'granted' : 'denied';
+  if (!existingPermissions.granted) {
+    const requestedPermissions = (await Notifications.requestPermissionsAsync()) as {
+      granted?: boolean;
+      status?: string;
+    };
+    finalStatus = requestedPermissions.granted ? 'granted' : 'denied';
   }
   if (finalStatus !== 'granted') {
     await savePushStatus('permission-denied', finalStatus);

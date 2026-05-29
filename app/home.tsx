@@ -25,7 +25,6 @@ export default function HomeScreen() {
   const location = useDisasterStore((s) => s.location);
   const disasters = useDisasterStore((s) => s.disasters);
   const disastersLoading = useDisasterStore((s) => s.disastersLoading);
-  const backendMode = useDisasterStore((s) => s.backendMode);
   const fetchDisasters = useDisasterStore((s) => s.fetchDisasters);
   const initJoinBanner = useDisasterStore((s) => s.initJoinBanner);
   const dismissed = useDisasterStore((s) => s.dismissedJoinBanner);
@@ -80,10 +79,6 @@ export default function HomeScreen() {
           </Text>
         </Pressable>
       </View>
-
-      {backendMode === 'firebase' ? (
-        <Text style={styles.backendBadge} testID="backend-firebase">● Firebase connected</Text>
-      ) : null}
 
       <View style={styles.quickActions}>
         <Pressable
@@ -211,12 +206,6 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
   },
   chipText: { fontSize: 13, color: Colors.primaryBlue, fontWeight: '500' },
-  backendBadge: {
-    fontSize: 11,
-    color: Colors.safeGreen,
-    fontWeight: '600',
-    marginBottom: 8,
-  },
   quickActions: {
     flexDirection: 'row',
     gap: 12,
